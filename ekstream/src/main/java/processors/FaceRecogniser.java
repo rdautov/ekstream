@@ -48,7 +48,7 @@ import utils.Utils;
 @Tags({"ekstream", "face", "recognition"})
 @CapabilityDescription("This processor takes as input video frames with detected human faces,"
         + "and recognises these faces.")
-public class FaceRecognitionProcessor extends EkstreamProcessor {
+public class FaceRecogniser extends EkstreamProcessor {
 
     /** Allowable value. */
     public static final AllowableValue FISHER = new AllowableValue("Fisher",

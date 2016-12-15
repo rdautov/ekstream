@@ -1,1 +1,3 @@
-nifi.VideoCapturer
+processors.VideoCapturer
+processors.FaceDetector
+processors.FaceRecogniser
