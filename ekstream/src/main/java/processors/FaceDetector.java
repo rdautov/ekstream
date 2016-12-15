@@ -100,15 +100,15 @@ public class FaceDetector extends EkstreamProcessor {
         final Set<Relationship> procRels = new HashSet<Relationship>();
         procRels.add(REL_SUCCESS);
         procRels.add(REL_FAILURE);
-        relationships = Collections.unmodifiableSet(procRels);
+        setRelationships(Collections.unmodifiableSet(procRels));
 
         final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
         supDescriptors.add(IMAGE_WIDTH);
         supDescriptors.add(IMAGE_HEIGHT);
         supDescriptors.add(SAVE_IMAGES);
-        properties = Collections.unmodifiableList(supDescriptors);
+        setProperties(Collections.unmodifiableList(supDescriptors));
 
-        logger.info("Initialisation complete!");
+        getLogger().info("Initialisation complete!");
     }
 
     /**

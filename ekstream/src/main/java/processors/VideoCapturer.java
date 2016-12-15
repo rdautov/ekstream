@@ -73,36 +73,20 @@ public class VideoCapturer extends EkstreamProcessor {
 
         final Set<Relationship> procRels = new HashSet<>();
         procRels.add(REL_SUCCESS);
-        relationships = Collections.unmodifiableSet(procRels);
+        setRelationships(Collections.unmodifiableSet(procRels));
 
         final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
         supDescriptors.add(FRAME_INTERVAL);
         supDescriptors.add(SAVE_IMAGES);
-        properties = Collections.unmodifiableList(supDescriptors);
+        setProperties(Collections.unmodifiableList(supDescriptors));
 
         try {
             grabber = FrameGrabber.createDefault(0);
         } catch (Exception e) {
-            logger.error("Something went wrong with the video capture!", e);
+            getLogger().error("Something went wrong with the video capture!", e);
         }
 
-        logger.info("Initialision complete!");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Set<Relationship> getRelationships() {
-        return relationships;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
-        return properties;
+        getLogger().info("Initialision complete!");
     }
 
     /**
@@ -144,11 +128,11 @@ public class VideoCapturer extends EkstreamProcessor {
             grabber.stop();
 
         } catch (Exception e) {
-            logger.error("Something went wrong with the video capture!", e);
+            getLogger().error("Something went wrong with the video capture!", e);
         } catch (InterruptedException e) {
-            logger.error("Something went wrong with the threads!", e);
+            getLogger().error("Something went wrong with the threads!", e);
         } catch (IOException e) {
-            logger.error("Something went wrong with saving the file!", e);
+            getLogger().error("Something went wrong with saving the file!", e);
         }
 
     }

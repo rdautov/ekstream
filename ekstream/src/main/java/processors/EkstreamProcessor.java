@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.AbstractProcessor;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
@@ -32,13 +31,10 @@ public class EkstreamProcessor extends AbstractProcessor {
             .build();
 
     /** List of processor properties. */
-    protected List<PropertyDescriptor> properties;
+    private List<PropertyDescriptor> properties;
 
     /** List of processor relationships. */
-    protected Set<Relationship> relationships;
-
-    /** Logger. */
-    protected ComponentLog logger;
+    private Set<Relationship> relationships;
 
     /**
      * {@inheritDoc}
@@ -47,9 +43,6 @@ public class EkstreamProcessor extends AbstractProcessor {
     protected void init(final ProcessorInitializationContext context) {
 
         Loader.load(opencv_objdetect.class);
-        logger = getLogger();
-
-        //logger.info("Initialisation complete!");
     }
 
     /**
@@ -68,11 +61,43 @@ public class EkstreamProcessor extends AbstractProcessor {
     }
 
     /**
+     * Setter.
+     *
+     * @param aRelationships relationships
+     */
+    public void setRelationships(final Set<Relationship> aRelationships) {
+        relationships = aRelationships;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
-    protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
+    public List<PropertyDescriptor> getSupportedPropertyDescriptors() {
         return properties;
     }
+
+    /**
+     * Getter.
+     *
+     * @return properties
+     */
+    public List<PropertyDescriptor> getProperties() {
+        return properties;
+    }
+
+
+    /**
+     * Setter.
+     *
+     * @param aProperties properties
+     */
+    public void setProperties(final List<PropertyDescriptor> aProperties) {
+        properties = aProperties;
+    }
+
+
+
+
 
 }

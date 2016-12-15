@@ -104,15 +104,15 @@ public class FaceRecognitionProcessor extends EkstreamProcessor {
 
         final Set<Relationship> procRels = new HashSet<>();
         procRels.add(REL_SUCCESS);
-        relationships = Collections.unmodifiableSet(procRels);
+        setRelationships(Collections.unmodifiableSet(procRels));
 
         final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
         supDescriptors.add(TRAINING_SET);
         supDescriptors.add(FACE_RECOGNIZER);
         supDescriptors.add(SAVE_IMAGES);
-        properties = Collections.unmodifiableList(supDescriptors);
+        setProperties(Collections.unmodifiableList(supDescriptors));
 
-        logger.info("Initialision complete!");
+        getLogger().info("Initialision complete!");
     }
 
     /**
@@ -143,7 +143,7 @@ public class FaceRecognitionProcessor extends EkstreamProcessor {
 
                 int predictedLabel = faceRecognizer.predict(face);
 
-                logger.info("Predicted label: " + predictedLabel);
+                getLogger().info("Predicted label: " + predictedLabel);
 
                 if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
                     opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-reognised.png",
