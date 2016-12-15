@@ -7,9 +7,8 @@ import static org.bytedeco.javacpp.opencv_core.cvLoad;
 import static org.bytedeco.javacpp.opencv_objdetect.CV_HAAR_DO_CANNY_PRUNING;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,22 +18,18 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.nifi.annotation.behavior.InputRequirement;
+import org.apache.nifi.annotation.behavior.TriggerWhenEmpty;
 import org.apache.nifi.annotation.behavior.InputRequirement.Requirement;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.components.PropertyDescriptor;
-import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
-import org.apache.nifi.processor.io.InputStreamCallback;
-import org.apache.nifi.processor.io.OutputStreamCallback;
 import org.apache.nifi.processor.util.StandardValidators;
-import org.apache.nifi.stream.io.ByteArrayInputStream;
 import org.bytedeco.javacpp.opencv_imgcodecs;
 import org.bytedeco.javacpp.helper.opencv_core.AbstractCvMemStorage;
 import org.bytedeco.javacpp.opencv_core.CvMemStorage;
@@ -42,24 +37,51 @@ import org.bytedeco.javacpp.opencv_core.CvRect;
 import org.bytedeco.javacpp.opencv_core.CvSeq;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_objdetect.CvHaarClassifierCascade;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
+import org.bytedeco.javacv.FrameGrabber.Exception;
 
 import utils.Utils;
 
 /**
- * A NiFi processor, which takes as input video frames coming from a video camera,
- * detects human faces in each frames and crops these detected faces.
+ * A NiFi processor which accesses the default video camera, captures the video stream,
+ * samples it into separate frames, and transfers forward for face recognition.
  */
-@InputRequirement(Requirement.INPUT_REQUIRED)
-@Tags({"ekstream", "video", "stream", "face", "detection", "crop"})
-@CapabilityDescription("This processors takes as input video frames coming from a video camera, "
-        + "detects human faces in each frames and crops these detected faces.")
-public class FaceDetector extends EkstreamProcessor {
+@TriggerWhenEmpty
+@InputRequirement(Requirement.INPUT_FORBIDDEN)
+@Tags({"ekstream", "video", "stream", "capturing", "sampling"})
+@CapabilityDescription("Testing JavaCV api")
+public class VideoFaceDetector extends EkstreamProcessor {
 
     /** Scale factor for face detection. */
     static final double SCALE_FACTOR = 1.5;
 
     /** Neighbors for face detection. */
     static final int MIN_NEIGHBOURS = 3;
+
+    /** 1000. */
+    static final int INTERVAL = 1000;
+
+    /** Final image width. */
+    static final int IMAGE_WIDTH = 92;
+
+    /** Final image height. */
+    static final int IMAGE_HEIGHT = 112;
+
+    /** 300. */
+    static final int IMAGE_DIMENSION = 300;
+
+    /** XML file with face cascade definition. */
+    public static final String CASCADE_FILE = "haarcascade_frontalface_default.xml";
+
+    /** Processor property. */
+    public static final PropertyDescriptor FRAME_INTERVAL = new PropertyDescriptor.Builder()
+            .name("Time interval between frames")
+            .description("Specified the time interval between two captured video frames, in ms")
+            .defaultValue("1000")
+            .required(true)
+            .addValidator(StandardValidators.INTEGER_VALIDATOR)
+            .build();
 
     /** Processor property. */
     public static final PropertyDescriptor SAVE_IMAGES = new PropertyDescriptor.Builder()
@@ -71,23 +93,8 @@ public class FaceDetector extends EkstreamProcessor {
             .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
             .build();
 
-    /** Processor property. */
-    public static final PropertyDescriptor IMAGE_WIDTH = new PropertyDescriptor.Builder()
-            .name("Image width")
-            .description("Specifies the width of images with detected faces")
-            .defaultValue("92")
-            .required(true)
-            .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
-
-    /** Processor property. */
-    public static final PropertyDescriptor IMAGE_HEIGHT = new PropertyDescriptor.Builder()
-            .name("Image height")
-            .description("Specifies the height of images with detected faces")
-            .defaultValue("112")
-            .required(true)
-            .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
+    /** JavaCV frame grabber. */
+    private static FrameGrabber grabber;
 
     /**
      * {@inheritDoc}
@@ -97,18 +104,22 @@ public class FaceDetector extends EkstreamProcessor {
 
         super.init(aContext);
 
-        final Set<Relationship> procRels = new HashSet<Relationship>();
+        final Set<Relationship> procRels = new HashSet<>();
         procRels.add(REL_SUCCESS);
-        procRels.add(REL_FAILURE);
         setRelationships(Collections.unmodifiableSet(procRels));
 
         final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
-        supDescriptors.add(IMAGE_WIDTH);
-        supDescriptors.add(IMAGE_HEIGHT);
+        supDescriptors.add(FRAME_INTERVAL);
         supDescriptors.add(SAVE_IMAGES);
         setProperties(Collections.unmodifiableList(supDescriptors));
 
-        getLogger().info("Initialisation complete!");
+        try {
+            grabber = FrameGrabber.createDefault(0);
+        } catch (Exception e) {
+            getLogger().error("Something went wrong with the video capture!", e);
+        }
+
+        getLogger().info("Initialision complete!");
     }
 
     /**
@@ -118,54 +129,54 @@ public class FaceDetector extends EkstreamProcessor {
     public void onTrigger(final ProcessContext aContext, final ProcessSession aSession)
             throws ProcessException {
 
-        FlowFile flowFile = aSession.get();
-        if (flowFile == null) {
-            return;
-        }
+        try {
 
-        aSession.read(flowFile, new InputStreamCallback() {
+            Frame frame = grabber.grab();
 
-            @Override
-            public void process(final InputStream aStream) throws IOException {
+            opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-transferred.png",
+                    Utils.getInstance().convertToImage(frame));
 
-                ByteArrayInputStream inputStream = new ByteArrayInputStream(
-                        IOUtils.toByteArray(aStream));
+            byte[] result = Utils.getInstance().convertToByteArray(frame);
 
-                BufferedImage bufferedImage = ImageIO.read(inputStream);
-                IplImage image = Utils.getInstance().convertToImage(bufferedImage);
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(result);
 
-                opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received.png", image);
+            BufferedImage bufferedImage = ImageIO.read(inputStream);
+            IplImage image = Utils.getInstance().convertToImage(bufferedImage);
 
-                ArrayList<IplImage> faces = detect(image);
-                if (!faces.isEmpty()) {
-                    ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces,
-                            Integer.parseInt(aContext.getProperty(IMAGE_WIDTH).getValue()),
-                            Integer.parseInt(aContext.getProperty(IMAGE_HEIGHT).getValue()));
+            opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received.png", image);
 
-                    //now transfer the cropped images forward
-                    for (IplImage face : resizedFaces) {
+            ArrayList<IplImage> faces = detect(image);
 
-                        if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
-                            opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
-                                    + "-face.png", face);
-                        }
+            if (!faces.isEmpty()) {
 
-                        FlowFile result = aSession.create(flowFile);
-                        result = aSession.write(result, new OutputStreamCallback() {
+                //now transfer the cropped images forward
+                for (IplImage face : faces) {
 
-                            @Override
-                            public void process(final OutputStream aStream) throws IOException {
-                                aStream.write(Utils.getInstance().convertToByteArray(face));
-                            }
-                        });
-                        aSession.transfer(result, REL_SUCCESS);
-                    }
+                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
+                            + "-detected.png", face);
+                }
+
+                ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces, 92, 112);
+
+                //now transfer the cropped images forward
+                for (IplImage face : resizedFaces) {
+
+                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
+                            + "-resized.png", face);
                 }
             }
-        });
 
-        //TODO how to destroy the original flowfile?
-        aSession.transfer(flowFile, REL_FAILURE);
+            Thread.currentThread();
+            Thread.sleep(INTERVAL);
+
+        } catch (Exception e) {
+            getLogger().error("Something went wrong with the video capture!", e);
+        } catch (InterruptedException e) {
+            getLogger().error("Something went wrong with the threads!", e);
+        } catch (IOException e) {
+            getLogger().error("Something went wrong with saving the file!", e);
+        }
+
     }
 
     /**
@@ -179,7 +190,7 @@ public class FaceDetector extends EkstreamProcessor {
         ArrayList<IplImage> result = new ArrayList<IplImage>();
 
         CvHaarClassifierCascade cascade =
-                new CvHaarClassifierCascade(cvLoad("haarcascade_frontalface_default.xml"));
+                new CvHaarClassifierCascade(cvLoad(CASCADE_FILE));
         CvMemStorage storage = AbstractCvMemStorage.create();
         CvSeq sign = cvHaarDetectObjects(aImage,
                 cascade, storage, SCALE_FACTOR, MIN_NEIGHBOURS, CV_HAAR_DO_CANNY_PRUNING);

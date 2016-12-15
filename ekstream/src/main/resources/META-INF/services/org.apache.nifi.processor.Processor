@@ -1,3 +1,4 @@
 processors.VideoCapturer
 processors.FaceDetector
 processors.FaceRecogniser
+processors.VideoFaceDetector

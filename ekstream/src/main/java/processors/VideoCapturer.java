@@ -102,11 +102,11 @@ public class VideoCapturer extends EkstreamProcessor {
 
             Frame frame = grabber.grab();
 
-            byte[] result = Utils.getInstance().toByteArray(frame);
+            byte[] result = Utils.getInstance().convertToByteArray(frame);
 
             if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
                 opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-captured.png",
-                        Utils.getInstance().convert(frame));
+                        Utils.getInstance().convertToImage(frame));
             }
 
             //transfer the image

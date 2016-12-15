@@ -138,8 +138,8 @@ public class FaceRecogniser extends EkstreamProcessor {
             public void process(final InputStream aStream) throws IOException {
 
                 BufferedImage bufferedImage = ImageIO.read(aStream);
-                Frame frame = Utils.getInstance().toFrame(bufferedImage);
-                Mat face = Utils.getInstance().toMat(frame);
+                Frame frame = Utils.getInstance().convertToFrame(bufferedImage);
+                Mat face = Utils.getInstance().convertToMat(frame);
 
                 int predictedLabel = faceRecognizer.predict(face);
 
@@ -147,7 +147,7 @@ public class FaceRecogniser extends EkstreamProcessor {
 
                 if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
                     opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-reognised.png",
-                            Utils.getInstance().convert(frame));
+                            Utils.getInstance().convertToImage(frame));
                 }
             }
         });

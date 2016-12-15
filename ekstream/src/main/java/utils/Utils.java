@@ -54,28 +54,6 @@ public final class Utils {
     }
 
     /**
-     * Converts a JavaCV frame into a JavaCV image.
-     *
-     * @param aFrame JavaCV frame
-     * @return JavaCV image
-     */
-    public IplImage convert(final Frame aFrame) {
-
-        return converter.convert(aFrame);
-    }
-
-    /**
-     * Converts a JavaCV image into a JavaCV frame.
-     *
-     * @param aImage JavaCV image
-     * @return JavaCV frame
-     */
-    public Frame convert(final IplImage aImage) {
-
-        return converter.convert(aImage);
-    }
-
-    /**
      * Crops an image to a given rectangle.
      *
      * @param aImage t
@@ -98,7 +76,6 @@ public final class Utils {
                 aImage.depth(), aImage.nChannels());
         // Copy original image (only ROI) to the cropped image
         opencv_core.cvCopy(aImage, cropped);
-        opencv_imgcodecs.cvSaveImage("cropped.png", cropped);
 
         return cropped;
 
@@ -120,7 +97,6 @@ public final class Utils {
                 aImage.depth(), aImage.nChannels());
         // Copy original image (only ROI) to the cropped image
         opencv_core.cvCopy(aImage, cropped);
-        opencv_imgcodecs.cvSaveImage("cropped.png", cropped);
 
         return cropped;
 
@@ -138,12 +114,6 @@ public final class Utils {
 
         IplImage result = AbstractIplImage.create(aWidth, aHeight,
                 aImage.depth(), aImage.nChannels());
-
-        //======================
-        opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
-                + "-notresizedface.png", aImage);
-        //======================
-
         opencv_imgproc.cvResize(aImage, result);
 
         return result;
@@ -170,13 +140,35 @@ public final class Utils {
     }
 
     /**
+     * Converts a JavaCV frame into a JavaCV image.
+     *
+     * @param aFrame JavaCV frame
+     * @return JavaCV image
+     */
+    public IplImage convertToImage(final Frame aFrame) {
+
+        return converter.convert(aFrame);
+    }
+
+    /**
+     * Converts a JavaCV image into a JavaCV frame.
+     *
+     * @param aImage JavaCV image
+     * @return JavaCV frame
+     */
+    public Frame convertToFrame(final IplImage aImage) {
+
+        return converter.convert(aImage);
+    }
+
+    /**
      * Converts an IplImage into a byte array.
      *
      * @param aImage input image
      * @return byte array
      * @throws IOException exception
      */
-    public byte[] toByteArray(final IplImage aImage) throws IOException {
+    public byte[] convertToByteArray(final IplImage aImage) throws IOException {
 
         BufferedImage result = flatConverter.convert(converter.convert(aImage));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -195,7 +187,7 @@ public final class Utils {
      * @return byte array
      * @throws IOException exception
      */
-    public byte[] toByteArray(final Frame aFrame) throws IOException {
+    public byte[] convertToByteArray(final Frame aFrame) throws IOException {
 
         BufferedImage result = flatConverter.convert(aFrame);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -214,7 +206,7 @@ public final class Utils {
      * @return frame
      * @throws IOException exception
      */
-    public Frame toFrame(final BufferedImage aImage) throws IOException {
+    public Frame convertToFrame(final BufferedImage aImage) throws IOException {
 
         return flatConverter.convert(aImage);
     }
@@ -226,7 +218,7 @@ public final class Utils {
      * @return image
      * @throws IOException exception
      */
-    public IplImage toIplImage(final BufferedImage aImage) throws IOException {
+    public IplImage convertToImage(final BufferedImage aImage) throws IOException {
 
         return converter.convertToIplImage(flatConverter.convert(aImage));
     }
@@ -238,8 +230,28 @@ public final class Utils {
      * @return JavaCV mat
      * @throws IOException exception
      */
-    public Mat toMat(final Frame aFrame) throws IOException {
+    public Mat convertToMat(final Frame aFrame) throws IOException {
 
         return converter.convertToMat(aFrame);
+    }
+
+    /**
+     * Saves image.
+     *
+     * @param aName image name
+     * @param aImage image
+     */
+    public void saveImage(final String aName, final IplImage aImage) {
+        opencv_imgcodecs.cvSaveImage(aName, aImage);
+    }
+
+    /**
+     * Saves image.
+     *
+     * @param aName image name
+     * @param aFrame image
+     */
+    public void saveImage(final String aName, final Frame aFrame) {
+        opencv_imgcodecs.cvSaveImage(aName, convertToImage(aFrame));
     }
 }
