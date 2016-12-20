@@ -1,1 +1,7 @@
-/home/orkes/workspace/ekstream-video-capture/src/main/java/nifi/VideoCapturer.java
+/home/orkes/git/ekstream/src/main/java/processors/FaceDetector.java
+/home/orkes/git/ekstream/src/main/java/test/VideoGrabberSamplerDetector.java
+/home/orkes/git/ekstream/src/main/java/utils/Utils.java
+/home/orkes/git/ekstream/src/main/java/processors/FaceRecogniser.java
+/home/orkes/git/ekstream/src/main/java/processors/VideoFaceDetector.java
+/home/orkes/git/ekstream/src/main/java/processors/VideoCapturer.java
+/home/orkes/git/ekstream/src/main/java/processors/EkstreamProcessor.java

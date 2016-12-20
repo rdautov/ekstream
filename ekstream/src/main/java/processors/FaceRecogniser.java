@@ -152,8 +152,6 @@ public class FaceRecogniser extends EkstreamProcessor {
             }
         });
 
-        //aSession.transfer(flowFile, REL_SUCCESS);
-
     }
 
     /**

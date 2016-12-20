@@ -1,2 +1,13 @@
-nifi/VideoCapturer.class
-nifi/VideoCapturer$1.class
+utils/Utils.class
+processors/EkstreamProcessor.class
+processors/VideoFaceDetector.class
+processors/FaceDetector.class
+processors/VideoFaceDetector$1.class
+processors/VideoCapturer$1.class
+processors/VideoCapturer.class
+processors/FaceRecogniser$2.class
+processors/FaceDetector$1$1.class
+processors/FaceRecogniser$1.class
+test/VideoGrabberSamplerDetector.class
+processors/FaceRecogniser.class
+processors/FaceDetector$1.class

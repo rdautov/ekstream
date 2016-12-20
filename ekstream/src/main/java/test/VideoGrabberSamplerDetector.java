@@ -32,6 +32,9 @@ import utils.Utils;
 
 import org.bytedeco.javacv.FrameGrabber.Exception;
 
+/**
+ * Class for testing.
+ */
 public class VideoGrabberSamplerDetector {
 
     /** Scale factor for face detection. */

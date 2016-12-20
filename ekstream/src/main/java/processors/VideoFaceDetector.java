@@ -6,9 +6,8 @@ import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
 import static org.bytedeco.javacpp.opencv_core.cvLoad;
 import static org.bytedeco.javacpp.opencv_objdetect.CV_HAAR_DO_CANNY_PRUNING;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,19 +15,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.imageio.ImageIO;
-
 import org.apache.nifi.annotation.behavior.InputRequirement;
 import org.apache.nifi.annotation.behavior.TriggerWhenEmpty;
 import org.apache.nifi.annotation.behavior.InputRequirement.Requirement;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.components.PropertyDescriptor;
+import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
+import org.apache.nifi.processor.io.OutputStreamCallback;
 import org.apache.nifi.processor.util.StandardValidators;
 import org.bytedeco.javacpp.opencv_imgcodecs;
 import org.bytedeco.javacpp.helper.opencv_core.AbstractCvMemStorage;
@@ -131,17 +130,11 @@ public class VideoFaceDetector extends EkstreamProcessor {
 
         try {
 
+            grabber.start();
+
             Frame frame = grabber.grab();
-
-            opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-transferred.png",
-                    Utils.getInstance().convertToImage(frame));
-
-            byte[] result = Utils.getInstance().convertToByteArray(frame);
-
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(result);
-
-            BufferedImage bufferedImage = ImageIO.read(inputStream);
-            IplImage image = Utils.getInstance().convertToImage(bufferedImage);
+            IplImage image = Utils.getInstance().convertToImage(frame);
+            image = Utils.getInstance().grayImage(image);
 
             opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received.png", image);
 
@@ -149,22 +142,38 @@ public class VideoFaceDetector extends EkstreamProcessor {
 
             if (!faces.isEmpty()) {
 
-                //now transfer the cropped images forward
                 for (IplImage face : faces) {
 
                     opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
                             + "-detected.png", face);
                 }
 
-                ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces, 92, 112);
+                ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces,
+                        IMAGE_WIDTH, IMAGE_HEIGHT);
 
                 //now transfer the cropped images forward
                 for (IplImage face : resizedFaces) {
 
                     opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
                             + "-resized.png", face);
+
+                    byte[] bytes = Utils.getInstance().convertToByteArray(face);
+
+                    //transfer the image
+                    FlowFile flowFile = aSession.create();
+                    flowFile = aSession.write(flowFile, new OutputStreamCallback() {
+
+                        @Override
+                        public void process(final OutputStream aStream) throws IOException {
+
+                            aStream.write(bytes);
+                        }
+                    });
+                    aSession.transfer(flowFile, REL_SUCCESS);
                 }
             }
+
+            grabber.stop();
 
             Thread.currentThread();
             Thread.sleep(INTERVAL);

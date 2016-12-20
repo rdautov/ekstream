@@ -103,6 +103,19 @@ public final class Utils {
     }
 
     /**
+     * Converts an image into grayscale.
+     *
+     * @param aImage original image
+     * @return grayscale image
+     */
+    public IplImage grayImage(final IplImage aImage) {
+
+        IplImage result = new IplImage();
+        opencv_imgproc.cvCvtColor(aImage, result, opencv_imgproc.CV_BGR2GRAY);
+        return result;
+    }
+
+    /**
      * Resizes and returns a single image.
      *
      * @param aImage original image
@@ -114,7 +127,7 @@ public final class Utils {
 
         IplImage result = AbstractIplImage.create(aWidth, aHeight,
                 aImage.depth(), aImage.nChannels());
-        opencv_imgproc.cvResize(aImage, result);
+        opencv_imgproc.cvResize(aImage, result, opencv_imgproc.CV_INTER_CUBIC);
 
         return result;
     }
