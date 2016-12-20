@@ -94,6 +94,9 @@ public class FaceRecogniser extends EkstreamProcessor {
     /** Face recognizer. */
     private static FaceRecognizer faceRecognizer;
 
+    /** Integer 10000. */
+    private static final int INT_10000 = 10000;
+
     /**
      * {@inheritDoc}
      */
@@ -139,16 +142,24 @@ public class FaceRecogniser extends EkstreamProcessor {
 
                 BufferedImage bufferedImage = ImageIO.read(aStream);
                 Frame frame = Utils.getInstance().convertToFrame(bufferedImage);
+
+                if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
+                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received_face.png",
+                            Utils.getInstance().convertToImage(frame));
+                }
+
                 Mat face = Utils.getInstance().convertToMat(frame);
                 face = Utils.getInstance().convertToGrayscale(face);
 
-                int predictedLabel = faceRecognizer.predict(face);
+                int[] plabel = new int[1];
+                double[] pconfidence = new double[1];
 
-                getLogger().info("Predicted label: " + predictedLabel);
+                faceRecognizer.predict(face, plabel, pconfidence);
 
-                if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
-                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-recognised.png",
-                            Utils.getInstance().convertToImage(frame));
+                getLogger().info("Predicted label: " + plabel[0]
+                        + " , confidence: " + pconfidence[0]);
+                if (pconfidence[0] > INT_10000) {
+                    getLogger().warn("ONE OF THE FACES HAS BEEN RECOGNISED!");
                 }
             }
         });

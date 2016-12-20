@@ -134,7 +134,8 @@ public class FaceDetector extends EkstreamProcessor {
                 BufferedImage bufferedImage = ImageIO.read(inputStream);
                 IplImage image = Utils.getInstance().convertToImage(bufferedImage);
 
-                opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received.png", image);
+                opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
+                        + "-captured_image.png", image);
 
                 ArrayList<IplImage> faces = detect(image);
                 if (!faces.isEmpty()) {
@@ -147,7 +148,7 @@ public class FaceDetector extends EkstreamProcessor {
 
                         if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
                             opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
-                                    + "-face.png", face);
+                                    + "-detected_face.png", face);
                         }
 
                         FlowFile result = aSession.create(flowFile);
@@ -164,8 +165,7 @@ public class FaceDetector extends EkstreamProcessor {
             }
         });
 
-        //TODO how to destroy the original flowfile?
-        aSession.transfer(flowFile, REL_FAILURE);
+        //aSession.transfer(flowFile, REL_FAILURE);
     }
 
     /**

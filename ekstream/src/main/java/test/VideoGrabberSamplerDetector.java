@@ -119,8 +119,6 @@ public class VideoGrabberSamplerDetector {
                     //System.out.println("Predicted label: " + predictedLabel);
                     System.out.println("Predicted label: " + plabel[0] + " & Confidence: " + pconfidence[0]);
 
-                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
-                            + "-resized.png", Utils.getInstance().convertToImage(mat));
                 }
             }
 
