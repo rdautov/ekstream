@@ -140,13 +140,14 @@ public class FaceRecogniser extends EkstreamProcessor {
                 BufferedImage bufferedImage = ImageIO.read(aStream);
                 Frame frame = Utils.getInstance().convertToFrame(bufferedImage);
                 Mat face = Utils.getInstance().convertToMat(frame);
+                face = Utils.getInstance().convertToGrayscale(face);
 
                 int predictedLabel = faceRecognizer.predict(face);
 
                 getLogger().info("Predicted label: " + predictedLabel);
 
                 if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
-                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-reognised.png",
+                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-recognised.png",
                             Utils.getInstance().convertToImage(frame));
                 }
             }

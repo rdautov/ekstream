@@ -61,17 +61,23 @@ public class VideoFaceDetector extends EkstreamProcessor {
     /** 1000. */
     static final int INTERVAL = 1000;
 
-    /** Final image width. */
-    static final int IMAGE_WIDTH = 92;
+    /** Processor property. */
+    public static final PropertyDescriptor IMAGE_WIDTH = new PropertyDescriptor.Builder()
+            .name("Image width")
+            .description("Specifies the width of images with detected faces")
+            .defaultValue("92")
+            .required(true)
+            .addValidator(StandardValidators.INTEGER_VALIDATOR)
+            .build();
 
-    /** Final image height. */
-    static final int IMAGE_HEIGHT = 112;
-
-    /** 300. */
-    static final int IMAGE_DIMENSION = 300;
-
-    /** XML file with face cascade definition. */
-    public static final String CASCADE_FILE = "haarcascade_frontalface_default.xml";
+    /** Processor property. */
+    public static final PropertyDescriptor IMAGE_HEIGHT = new PropertyDescriptor.Builder()
+            .name("Image height")
+            .description("Specifies the height of images with detected faces")
+            .defaultValue("112")
+            .required(true)
+            .addValidator(StandardValidators.INTEGER_VALIDATOR)
+            .build();
 
     /** Processor property. */
     public static final PropertyDescriptor FRAME_INTERVAL = new PropertyDescriptor.Builder()
@@ -92,6 +98,9 @@ public class VideoFaceDetector extends EkstreamProcessor {
             .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
             .build();
 
+    /** XML file with face cascade definition. */
+    public static final String CASCADE_FILE = "haarcascade_frontalface_default.xml";
+
     /** JavaCV frame grabber. */
     private static FrameGrabber grabber;
 
@@ -109,6 +118,8 @@ public class VideoFaceDetector extends EkstreamProcessor {
 
         final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
         supDescriptors.add(FRAME_INTERVAL);
+        supDescriptors.add(IMAGE_WIDTH);
+        supDescriptors.add(IMAGE_HEIGHT);
         supDescriptors.add(SAVE_IMAGES);
         setProperties(Collections.unmodifiableList(supDescriptors));
 
@@ -134,7 +145,6 @@ public class VideoFaceDetector extends EkstreamProcessor {
 
             Frame frame = grabber.grab();
             IplImage image = Utils.getInstance().convertToImage(frame);
-            image = Utils.getInstance().grayImage(image);
 
             opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received.png", image);
 
@@ -149,7 +159,8 @@ public class VideoFaceDetector extends EkstreamProcessor {
                 }
 
                 ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces,
-                        IMAGE_WIDTH, IMAGE_HEIGHT);
+                        Integer.parseInt(aContext.getProperty(IMAGE_WIDTH).getValue()),
+                        Integer.parseInt(aContext.getProperty(IMAGE_HEIGHT).getValue()));
 
                 //now transfer the cropped images forward
                 for (IplImage face : resizedFaces) {

@@ -23,11 +23,14 @@ import org.bytedeco.javacv.OpenCVFrameConverter;
  */
 public final class Utils {
 
-    /** Converter for Frames and IplImages. */
-    private static OpenCVFrameConverter.ToIplImage converter;
+    /** Converter for IplImages. */
+    private static OpenCVFrameConverter.ToIplImage imageConverter;
 
-    /** Converter for byte arrays and images. */
-    private static Java2DFrameConverter flatConverter;
+    /** Converter for Mats. */
+    //private static OpenCVFrameConverter.ToMat matConverter;
+
+    /** Converter for byte arrays. */
+    private static Java2DFrameConverter byteConverter;
 
 
     /** Singleton instance of the Utils class. */
@@ -37,8 +40,9 @@ public final class Utils {
      * Constructor.
      */
     private Utils() {
-        converter = new OpenCVFrameConverter.ToIplImage();
-        flatConverter = new Java2DFrameConverter();
+        imageConverter = new OpenCVFrameConverter.ToIplImage();
+        byteConverter = new Java2DFrameConverter();
+        //matConverter = new OpenCVFrameConverter.ToMat();
     }
 
     /**
@@ -108,10 +112,27 @@ public final class Utils {
      * @param aImage original image
      * @return grayscale image
      */
-    public IplImage grayImage(final IplImage aImage) {
+    public IplImage convertToGrayscale(final IplImage aImage) {
 
-        IplImage result = new IplImage();
+        final IplImage result = opencv_core.cvCreateImage(opencv_core.cvGetSize(aImage), 1, 1);
+        /*AbstractIplImage.create(aImage.width(), aImage.height(),
+                aImage.depth(), aImage.nChannels());*/
+        //final IplImage imageBW = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+        //cvCvtColor(image, imageBW, CV_BGR2GRAY);
         opencv_imgproc.cvCvtColor(aImage, result, opencv_imgproc.CV_BGR2GRAY);
+        return result;
+    }
+
+    /**
+     * Converts an image into grayscale.
+     *
+     * @param aMat original image
+     * @return grayscale image
+     */
+    public Mat convertToGrayscale(final Mat aMat) {
+
+        final Mat result = aMat.clone();
+        opencv_imgproc.cvtColor(aMat, result, opencv_imgproc.CV_RGB2GRAY);
         return result;
     }
 
@@ -160,7 +181,7 @@ public final class Utils {
      */
     public IplImage convertToImage(final Frame aFrame) {
 
-        return converter.convert(aFrame);
+        return imageConverter.convert(aFrame);
     }
 
     /**
@@ -171,7 +192,7 @@ public final class Utils {
      */
     public Frame convertToFrame(final IplImage aImage) {
 
-        return converter.convert(aImage);
+        return imageConverter.convert(aImage);
     }
 
     /**
@@ -183,7 +204,7 @@ public final class Utils {
      */
     public byte[] convertToByteArray(final IplImage aImage) throws IOException {
 
-        BufferedImage result = flatConverter.convert(converter.convert(aImage));
+        BufferedImage result = byteConverter.convert(imageConverter.convert(aImage));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(result, "png", baos);
         baos.flush();
@@ -202,7 +223,7 @@ public final class Utils {
      */
     public byte[] convertToByteArray(final Frame aFrame) throws IOException {
 
-        BufferedImage result = flatConverter.convert(aFrame);
+        BufferedImage result = byteConverter.convert(aFrame);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(result, "png", baos);
         baos.flush();
@@ -221,7 +242,7 @@ public final class Utils {
      */
     public Frame convertToFrame(final BufferedImage aImage) throws IOException {
 
-        return flatConverter.convert(aImage);
+        return byteConverter.convert(aImage);
     }
 
     /**
@@ -233,11 +254,23 @@ public final class Utils {
      */
     public IplImage convertToImage(final BufferedImage aImage) throws IOException {
 
-        return converter.convertToIplImage(flatConverter.convert(aImage));
+        return imageConverter.convertToIplImage(byteConverter.convert(aImage));
     }
 
     /**
-     * Converts a buffered image into a JavaCV image.
+     * Converts a JavaCV mat into a JavaCV image.
+     *
+     * @param aMat JavaCV mat
+     * @return image
+     * @throws IOException exception
+     */
+    public IplImage convertToImage(final Mat aMat) throws IOException {
+
+        return imageConverter.convertToIplImage(imageConverter.convert(aMat));
+    }
+
+    /**
+     * Converts a buffered image into a JavaCV mat.
      *
      * @param aFrame JavaCV frame
      * @return JavaCV mat
@@ -245,7 +278,19 @@ public final class Utils {
      */
     public Mat convertToMat(final Frame aFrame) throws IOException {
 
-        return converter.convertToMat(aFrame);
+        return imageConverter.convertToMat(aFrame);
+    }
+
+    /**
+     * Converts a JavaCV image into a JavaCV mat.
+     *
+     * @param aImage JavaCV image
+     * @return JavaCV mat
+     * @throws IOException exception
+     */
+    public Mat convertToMat(final IplImage aImage) throws IOException {
+
+        return imageConverter.convertToMat(convertToFrame(aImage));
     }
 
     /**
