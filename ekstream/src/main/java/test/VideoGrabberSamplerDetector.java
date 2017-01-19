@@ -75,6 +75,8 @@ public class VideoGrabberSamplerDetector {
      */
     public static void main(final String[] aArgs) throws Exception, InterruptedException, IOException {
 
+
+
         Loader.load(opencv_objdetect.class);
 
         FrameGrabber grabber = FrameGrabber.createDefault(0);
