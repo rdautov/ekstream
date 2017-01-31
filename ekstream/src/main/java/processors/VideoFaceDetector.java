@@ -99,7 +99,7 @@ public class VideoFaceDetector extends EkstreamProcessor {
             .build();
 
     /** XML file with face cascade definition. */
-    public static final String CASCADE_FILE = "haarcascade_frontalface_default.xml";
+    public static final String CASCADE_FILE = "/home/orkes/Desktop/haarcascade_frontalface_default.xml";
 
     /** JavaCV frame grabber. */
     private static FrameGrabber grabber;
@@ -126,8 +126,9 @@ public class VideoFaceDetector extends EkstreamProcessor {
         try {
             grabber = FrameGrabber.createDefault(0);
         } catch (Exception e) {
-            getLogger().error("Something went wrong with the video capture!", e);
+            getLogger().error("Something went wrong with the video grabber initialisation!", e);
         }
+        //grabber.flush();
 
         getLogger().info("Initialision complete!");
     }
@@ -191,10 +192,25 @@ public class VideoFaceDetector extends EkstreamProcessor {
 
         } catch (Exception e) {
             getLogger().error("Something went wrong with the video capture!", e);
+            try {
+                grabber.stop();
+            } catch (Exception e1) {
+                getLogger().error("NESTED: Something went wrong with the video capture!", e1);
+            }
         } catch (InterruptedException e) {
             getLogger().error("Something went wrong with the threads!", e);
+            try {
+                grabber.stop();
+            } catch (Exception e1) {
+                getLogger().error("NESTED: Something went wrong with the video capture!", e1);
+            }
         } catch (IOException e) {
             getLogger().error("Something went wrong with saving the file!", e);
+            try {
+                grabber.stop();
+            } catch (Exception e1) {
+                getLogger().error("NESTED: Something went wrong with the video capture!", e1);
+            }
         }
 
     }
@@ -205,12 +221,15 @@ public class VideoFaceDetector extends EkstreamProcessor {
      * @param aImage input image
      * @return an array of detected faces as images
      */
-    public static ArrayList<IplImage> detect(final IplImage aImage) {
+    public ArrayList<IplImage> detect(final IplImage aImage) {
 
         ArrayList<IplImage> result = new ArrayList<IplImage>();
 
         CvHaarClassifierCascade cascade =
                 new CvHaarClassifierCascade(cvLoad(CASCADE_FILE));
+        //===============
+        getLogger().info("=============================Cascade classifier = " + cascade.isNull());
+
         CvMemStorage storage = AbstractCvMemStorage.create();
         CvSeq sign = cvHaarDetectObjects(aImage,
                 cascade, storage, SCALE_FACTOR, MIN_NEIGHBOURS, CV_HAAR_DO_CANNY_PRUNING);

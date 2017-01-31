@@ -21,7 +21,7 @@ public class EkstreamProcessor extends AbstractProcessor {
     /** Relationship "Success". */
     public static final Relationship REL_SUCCESS = new Relationship.Builder()
             .name("success")
-            .description("This is where flow files are sent if the processor execution wehnt well.")
+            .description("This is where flow files are sent if the processor execution went well.")
             .build();
 
     /** Relationship "Failure".*/

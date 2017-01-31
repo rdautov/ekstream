@@ -83,7 +83,7 @@ public class VideoGrabberSamplerDetector {
         converter = new OpenCVFrameConverter.ToIplImage();
         flatConverter = new Java2DFrameConverter();
 
-        train("/home/orkes/Desktop/training", "LBPH");
+        train("/home/orkes/Desktop/s1", "LBPH");
 
         grabber.start();
 
@@ -105,7 +105,7 @@ public class VideoGrabberSamplerDetector {
                             + "-detected.png", face);
                 }
 
-                ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces, 300, 300);
+                ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces, 92, 112);
 
                 //now transfer the cropped images forward
                 for (IplImage face : resizedFaces) {
