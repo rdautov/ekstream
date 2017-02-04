@@ -3,7 +3,6 @@ package processors;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +16,7 @@ import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.flowfile.FlowFile;
+import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
@@ -24,7 +24,6 @@ import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.io.OutputStreamCallback;
 import org.apache.nifi.processor.util.StandardValidators;
-import org.bytedeco.javacpp.opencv_imgcodecs;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.FrameGrabber.Exception;
@@ -39,7 +38,25 @@ import utils.Utils;
 @InputRequirement(Requirement.INPUT_FORBIDDEN)
 @Tags({"ekstream", "video", "stream", "capturing", "sampling"})
 @CapabilityDescription("Testing JavaCV api")
-public class VideoCapturer extends EkstreamProcessor {
+public class CaptureVideo extends EkstreamProcessor {
+
+    /** Processor property. */
+    public static final PropertyDescriptor FRAME_WIDTH = new PropertyDescriptor.Builder()
+            .name("Image width")
+            .description("Specifies the width of of captured frames")
+            .defaultValue("640")
+            .required(true)
+            .addValidator(StandardValidators.INTEGER_VALIDATOR)
+            .build();
+
+    /** Processor property. */
+    public static final PropertyDescriptor FRAME_HEIGHT = new PropertyDescriptor.Builder()
+            .name("Image height")
+            .description("Specifies the height of captured frames")
+            .defaultValue("480")
+            .required(true)
+            .addValidator(StandardValidators.INTEGER_VALIDATOR)
+            .build();
 
     /** Processor property. */
     public static final PropertyDescriptor FRAME_INTERVAL = new PropertyDescriptor.Builder()
@@ -48,16 +65,6 @@ public class VideoCapturer extends EkstreamProcessor {
             .defaultValue("1000")
             .required(true)
             .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
-
-    /** Processor property. */
-    public static final PropertyDescriptor SAVE_IMAGES = new PropertyDescriptor.Builder()
-            .name("Save images")
-            .description("Specifies whether interim results should be saved.")
-            .allowableValues(new HashSet<String>(Arrays.asList("true", "false")))
-            .defaultValue("true")
-            .required(true)
-            .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
             .build();
 
     /** JavaCV frame grabber. */
@@ -77,13 +84,16 @@ public class VideoCapturer extends EkstreamProcessor {
 
         final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
         supDescriptors.add(FRAME_INTERVAL);
+        supDescriptors.add(FRAME_WIDTH);
+        supDescriptors.add(FRAME_HEIGHT);
         supDescriptors.add(SAVE_IMAGES);
+        supDescriptors.add(BENCHMARKING_DIR);
         setProperties(Collections.unmodifiableList(supDescriptors));
 
         try {
             grabber = FrameGrabber.createDefault(0);
         } catch (Exception e) {
-            getLogger().error("Something went wrong with the video capture!", e);
+            getLogger().error("Something went wrong with the video grabber initialisation!", e);
         }
 
         getLogger().info("Initialision complete!");
@@ -96,18 +106,18 @@ public class VideoCapturer extends EkstreamProcessor {
     public void onTrigger(final ProcessContext aContext, final ProcessSession aSession)
             throws ProcessException {
 
+        super.onTrigger(aContext, aSession);
+
         try {
 
             grabber.start();
 
             Frame frame = grabber.grab();
 
+            //TODO maybe send iplimage??
             byte[] result = Utils.getInstance().convertToByteArray(frame);
 
-            if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
-                opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-captured.png",
-                        Utils.getInstance().convertToImage(frame));
-            }
+            saveInterimResults(System.currentTimeMillis() + "-captured.png", frame);
 
             //transfer the image
             FlowFile flowFile = aSession.create();
@@ -119,6 +129,11 @@ public class VideoCapturer extends EkstreamProcessor {
                     aStream.write(result);
                 }
             });
+
+            //benchmarking=====================================
+            benchmark(flowFile.getAttribute(CoreAttributes.UUID.key()));
+            //=================================================
+
             aSession.transfer(flowFile, REL_SUCCESS);
             aSession.commit();
 

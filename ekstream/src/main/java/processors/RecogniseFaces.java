@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +23,7 @@ import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.components.AllowableValue;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.flowfile.FlowFile;
+import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
@@ -48,7 +48,7 @@ import utils.Utils;
 @Tags({"ekstream", "face", "recognition"})
 @CapabilityDescription("This processor takes as input video frames with detected human faces,"
         + "and recognises these faces.")
-public class FaceRecogniser extends EkstreamProcessor {
+public class RecogniseFaces extends EkstreamProcessor {
 
     /** Allowable value. */
     public static final AllowableValue FISHER = new AllowableValue("Fisher",
@@ -65,8 +65,8 @@ public class FaceRecogniser extends EkstreamProcessor {
     /** Processor property. */
     public static final PropertyDescriptor TRAINING_SET = new PropertyDescriptor.Builder()
             .name("Folder with training images.")
-            .description("Specified the folder where trainaing images are located.")
-            .defaultValue("test")
+            .description("Specifies the folder where trainaing images are located.")
+            .defaultValue("/opt/nifi-1.0.1/training/")
             .required(true)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
@@ -79,16 +79,6 @@ public class FaceRecogniser extends EkstreamProcessor {
             .defaultValue(FISHER.getValue())
             .required(true)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .build();
-
-    /** Processor property. */
-    public static final PropertyDescriptor SAVE_IMAGES = new PropertyDescriptor.Builder()
-            .name("Save images")
-            .description("Specifies whether interim results should be saved.")
-            .allowableValues(new HashSet<String>(Arrays.asList("true", "false")))
-            .defaultValue("true")
-            .required(true)
-            .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
             .build();
 
     /** Face recognizer. */
@@ -111,6 +101,7 @@ public class FaceRecogniser extends EkstreamProcessor {
 
         final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
         supDescriptors.add(TRAINING_SET);
+        supDescriptors.add(BENCHMARKING_DIR);
         supDescriptors.add(FACE_RECOGNIZER);
         supDescriptors.add(SAVE_IMAGES);
         setProperties(Collections.unmodifiableList(supDescriptors));
@@ -124,6 +115,8 @@ public class FaceRecogniser extends EkstreamProcessor {
     @Override
     public void onTrigger(final ProcessContext aContext, final ProcessSession aSession)
             throws ProcessException {
+
+        super.onTrigger(aContext, aSession);
 
         if (null == faceRecognizer) {
             train(aContext.getProperty(TRAINING_SET).getValue(),
@@ -143,10 +136,8 @@ public class FaceRecogniser extends EkstreamProcessor {
                 BufferedImage bufferedImage = ImageIO.read(aStream);
                 Frame frame = Utils.getInstance().convertToFrame(bufferedImage);
 
-                if (aContext.getProperty(SAVE_IMAGES).asBoolean()) {
-                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received_face.png",
-                            Utils.getInstance().convertToImage(frame));
-                }
+                saveInterimResults(System.currentTimeMillis() + "-received_face.png",
+                        frame);
 
                 Mat face = Utils.getInstance().convertToMat(frame);
                 face = Utils.getInstance().convertToGrayscale(face);
@@ -155,6 +146,10 @@ public class FaceRecogniser extends EkstreamProcessor {
                 double[] pconfidence = new double[1];
 
                 faceRecognizer.predict(face, plabel, pconfidence);
+
+                //benchmarking====================================
+                benchmark(flowFile.getAttribute(CoreAttributes.UUID.key()));
+                //=================================================
 
                 getLogger().info("Predicted label: " + plabel[0]
                         + " , confidence: " + pconfidence[0]);

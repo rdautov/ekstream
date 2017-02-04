@@ -9,7 +9,6 @@ import static org.bytedeco.javacpp.opencv_objdetect.CV_HAAR_DO_CANNY_PRUNING;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +21,7 @@ import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.flowfile.FlowFile;
+import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
@@ -29,7 +29,6 @@ import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.io.OutputStreamCallback;
 import org.apache.nifi.processor.util.StandardValidators;
-import org.bytedeco.javacpp.opencv_imgcodecs;
 import org.bytedeco.javacpp.helper.opencv_core.AbstractCvMemStorage;
 import org.bytedeco.javacpp.opencv_core.CvMemStorage;
 import org.bytedeco.javacpp.opencv_core.CvRect;
@@ -50,7 +49,7 @@ import utils.Utils;
 @InputRequirement(Requirement.INPUT_FORBIDDEN)
 @Tags({"ekstream", "video", "stream", "capturing", "sampling"})
 @CapabilityDescription("Testing JavaCV api")
-public class VideoFaceDetector extends EkstreamProcessor {
+public class CaptureVideoDetectFaces extends EkstreamProcessor {
 
     /** Scale factor for face detection. */
     static final double SCALE_FACTOR = 1.5;
@@ -60,6 +59,15 @@ public class VideoFaceDetector extends EkstreamProcessor {
 
     /** 1000. */
     static final int INTERVAL = 1000;
+
+    /** Processor property. */
+    public static final PropertyDescriptor CASCADE_FILE = new PropertyDescriptor.Builder()
+            .name("Cascade file.")
+            .description("Specifies the cascade file to be used for face recognition.")
+            .defaultValue("/home/orkes/Desktop/haarcascade_frontalface_default.xml")
+            .required(true)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .build();
 
     /** Processor property. */
     public static final PropertyDescriptor IMAGE_WIDTH = new PropertyDescriptor.Builder()
@@ -88,18 +96,8 @@ public class VideoFaceDetector extends EkstreamProcessor {
             .addValidator(StandardValidators.INTEGER_VALIDATOR)
             .build();
 
-    /** Processor property. */
-    public static final PropertyDescriptor SAVE_IMAGES = new PropertyDescriptor.Builder()
-            .name("Save images")
-            .description("Specifies whether interim results should be saved.")
-            .allowableValues(new HashSet<String>(Arrays.asList("true", "false")))
-            .defaultValue("true")
-            .required(true)
-            .addValidator(StandardValidators.BOOLEAN_VALIDATOR)
-            .build();
-
-    /** XML file with face cascade definition. */
-    public static final String CASCADE_FILE = "/home/orkes/Desktop/haarcascade_frontalface_default.xml";
+    /** Cascade file. */
+    private static CvHaarClassifierCascade cascade;
 
     /** JavaCV frame grabber. */
     private static FrameGrabber grabber;
@@ -121,6 +119,8 @@ public class VideoFaceDetector extends EkstreamProcessor {
         supDescriptors.add(IMAGE_WIDTH);
         supDescriptors.add(IMAGE_HEIGHT);
         supDescriptors.add(SAVE_IMAGES);
+        supDescriptors.add(BENCHMARKING_DIR);
+        supDescriptors.add(CASCADE_FILE);
         setProperties(Collections.unmodifiableList(supDescriptors));
 
         try {
@@ -128,7 +128,6 @@ public class VideoFaceDetector extends EkstreamProcessor {
         } catch (Exception e) {
             getLogger().error("Something went wrong with the video grabber initialisation!", e);
         }
-        //grabber.flush();
 
         getLogger().info("Initialision complete!");
     }
@@ -140,6 +139,15 @@ public class VideoFaceDetector extends EkstreamProcessor {
     public void onTrigger(final ProcessContext aContext, final ProcessSession aSession)
             throws ProcessException {
 
+        super.onTrigger(aContext, aSession);
+
+        if (null == cascade) {
+            cascade =
+                    new CvHaarClassifierCascade(
+                            cvLoad(aContext.getProperty(CASCADE_FILE).getValue()));
+            getLogger().info("Loaded the cascade file: " + cascade.toString());
+        }
+
         try {
 
             grabber.start();
@@ -147,17 +155,11 @@ public class VideoFaceDetector extends EkstreamProcessor {
             Frame frame = grabber.grab();
             IplImage image = Utils.getInstance().convertToImage(frame);
 
-            opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received.png", image);
+            saveInterimResults(System.currentTimeMillis() + "-received.png", image);
 
             ArrayList<IplImage> faces = detect(image);
 
             if (!faces.isEmpty()) {
-
-                for (IplImage face : faces) {
-
-                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
-                            + "-detected.png", face);
-                }
 
                 ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces,
                         Integer.parseInt(aContext.getProperty(IMAGE_WIDTH).getValue()),
@@ -166,8 +168,7 @@ public class VideoFaceDetector extends EkstreamProcessor {
                 //now transfer the cropped images forward
                 for (IplImage face : resizedFaces) {
 
-                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
-                            + "-resized.png", face);
+                    saveInterimResults(System.currentTimeMillis() + "-resized.png", face);
 
                     byte[] bytes = Utils.getInstance().convertToByteArray(face);
 
@@ -182,30 +183,26 @@ public class VideoFaceDetector extends EkstreamProcessor {
                         }
                     });
                     aSession.transfer(flowFile, REL_SUCCESS);
+
+                    //benchmarking=====================================
+                    benchmark(flowFile.getAttribute(CoreAttributes.UUID.key()));
+                    //=================================================
+
                 }
             }
 
             grabber.stop();
 
             Thread.currentThread();
-            Thread.sleep(INTERVAL);
+            Thread.sleep(Long.parseLong(aContext.getProperty(FRAME_INTERVAL).getValue()));
 
         } catch (Exception e) {
             getLogger().error("Something went wrong with the video capture!", e);
-            try {
-                grabber.stop();
-            } catch (Exception e1) {
-                getLogger().error("NESTED: Something went wrong with the video capture!", e1);
-            }
         } catch (InterruptedException e) {
             getLogger().error("Something went wrong with the threads!", e);
-            try {
-                grabber.stop();
-            } catch (Exception e1) {
-                getLogger().error("NESTED: Something went wrong with the video capture!", e1);
-            }
         } catch (IOException e) {
             getLogger().error("Something went wrong with saving the file!", e);
+        } finally {
             try {
                 grabber.stop();
             } catch (Exception e1) {
@@ -225,21 +222,12 @@ public class VideoFaceDetector extends EkstreamProcessor {
 
         ArrayList<IplImage> result = new ArrayList<IplImage>();
 
-        CvHaarClassifierCascade cascade =
-                new CvHaarClassifierCascade(cvLoad(CASCADE_FILE));
-        //===============
-        getLogger().info("=============================Cascade classifier = " + cascade.isNull());
-
         CvMemStorage storage = AbstractCvMemStorage.create();
         CvSeq sign = cvHaarDetectObjects(aImage,
                 cascade, storage, SCALE_FACTOR, MIN_NEIGHBOURS, CV_HAAR_DO_CANNY_PRUNING);
 
         for (int i = 0; i < sign.total(); i++) {
             CvRect r = new CvRect(cvGetSeqElem(sign, i));
-            //opencv_imgproc.cvRectangle(aImage, cvPoint(r.x(), r.y()),
-            //        cvPoint(r.width() + r.x(), r.height() + r.y()),
-            //        AbstractCvScalar.RED, 2, LINE_AA, 0);
-
             IplImage image = Utils.getInstance().cropImage(aImage, r);
             result.add(image);
         }
