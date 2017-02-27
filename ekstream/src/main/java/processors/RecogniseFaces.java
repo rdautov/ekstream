@@ -3,7 +3,9 @@ package processors;
 import static org.bytedeco.javacpp.opencv_core.CV_32SC1;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +25,6 @@ import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.components.AllowableValue;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.flowfile.FlowFile;
-import org.apache.nifi.flowfile.attributes.CoreAttributes;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
@@ -87,6 +88,9 @@ public class RecogniseFaces extends EkstreamProcessor {
     /** Integer 10000. */
     private static final int INT_10000 = 10000;
 
+    /** File writer for benchmarking logs. */
+    private static BufferedWriter bWriter2;
+
     /**
      * {@inheritDoc}
      */
@@ -118,12 +122,22 @@ public class RecogniseFaces extends EkstreamProcessor {
 
         super.onTrigger(aContext, aSession);
 
+        if (null == bWriter2) {
+            try {
+                bWriter2 = new BufferedWriter(new FileWriter(aContext.getProperty(BENCHMARKING_DIR)
+                        .getValue() + aContext.getName() + "-" + getIdentifier() + "-ready", true));
+                //getLogger().info("Saving benchmarking results to: " + bWriter2.toString());
+            } catch (IOException e) {
+                getLogger().error("Could not open the file for writing!", e);
+            }
+        }
+
         if (null == faceRecognizer) {
             train(aContext.getProperty(TRAINING_SET).getValue(),
                     aContext.getProperty(FACE_RECOGNIZER).getValue());
         }
 
-        FlowFile flowFile = aSession.get();
+        final FlowFile flowFile = aSession.get();
         if (flowFile == null) {
             return;
         }
@@ -132,6 +146,8 @@ public class RecogniseFaces extends EkstreamProcessor {
 
             @Override
             public void process(final InputStream aStream) throws IOException {
+
+                FlowFile result = aSession.create(flowFile);
 
                 BufferedImage bufferedImage = ImageIO.read(aStream);
                 Frame frame = Utils.getInstance().convertToFrame(bufferedImage);
@@ -148,7 +164,20 @@ public class RecogniseFaces extends EkstreamProcessor {
                 faceRecognizer.predict(face, plabel, pconfidence);
 
                 //benchmarking====================================
-                benchmark(flowFile.getAttribute(CoreAttributes.UUID.key()));
+                result = aSession.putAttribute(result, "recognise",
+                        String.valueOf(System.currentTimeMillis()));
+
+                long detectionTime = Long.parseLong(result.getAttribute("detect"))
+                        - Long.parseLong(flowFile.getAttribute("capture"));
+                long recognitionTime = Long.parseLong(result.getAttribute("recognise"))
+                        - Long.parseLong(flowFile.getAttribute("detect"));
+
+                getLogger().info("****" + result.getAttribute("parent")
+                + " : " + detectionTime + " : " + recognitionTime + "****");
+
+                benchmark2(result);
+
+                benchmark(result.getAttribute("parent"));
                 //=================================================
 
                 getLogger().info("Predicted label: " + plabel[0]
@@ -156,10 +185,12 @@ public class RecogniseFaces extends EkstreamProcessor {
                 if (pconfidence[0] > INT_10000) {
                     getLogger().warn("ONE OF THE FACES HAS BEEN RECOGNISED!");
                 }
+                aSession.transfer(result, REL_SUCCESS);
             }
         });
 
-        aSession.transfer(flowFile, REL_SUCCESS);
+        aSession.remove(flowFile);
+        aSession.commit();
 
     }
 
@@ -210,5 +241,24 @@ public class RecogniseFaces extends EkstreamProcessor {
         }
 
         faceRecognizer.train(images, labels);
+    }
+
+    /**
+     * Logs a single benchmarking line to file.
+     *
+     * @param aFlowFile Flowfile
+     */
+    public void benchmark2(final FlowFile aFlowFile) {
+        try {
+            bWriter2.write(aFlowFile.getAttribute("parent") + ";"
+                    + aFlowFile.getAttribute("capture") + ";"
+                    + aFlowFile.getAttribute("detect") + ";"
+                    + aFlowFile.getAttribute("recognise") + ";");
+            bWriter2.write("\n");
+            bWriter2.flush();
+        } catch (IOException e) {
+            getLogger().error("Could not write to file!", e);
+        }
+
     }
 }

@@ -157,7 +157,7 @@ public class DetectFaces extends EkstreamProcessor {
                 IplImage image = Utils.getInstance().convertToImage(bufferedImage);
 
                 opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
-                        + "-received1.png", image);
+                        + "-received.png", image);
 
                 ArrayList<IplImage> faces = detect(image);
 
@@ -170,16 +170,9 @@ public class DetectFaces extends EkstreamProcessor {
 
                     for (IplImage face : resizedFaces) {
 
-                        getLogger().info("=================TEST CLONING==================");
                         FlowFile result = aSession.create(flowFile);
-                        getLogger().info("=================PARENT ID=================="
-                                + flowFile.getAttribute(CoreAttributes.UUID.key()));
-                        getLogger().info("=================CLONE ID=================="
-                                + result.getAttribute(CoreAttributes.UUID.key()));
                         result = aSession.putAttribute(result, "parent",
                                 flowFile.getAttribute(CoreAttributes.UUID.key()));
-                        getLogger().info("=================ATTRIBUTE ID=================="
-                                + result.getAttribute("parent"));
                         result = aSession.write(result, new OutputStreamCallback() {
 
                             @Override
@@ -188,8 +181,9 @@ public class DetectFaces extends EkstreamProcessor {
                             }
                         });
 
-
                         //benchmarking=====================================
+                        result = aSession.putAttribute(result, "detect",
+                                String.valueOf(System.currentTimeMillis()));
                         benchmark(flowFile.getAttribute(CoreAttributes.UUID.key()));
                         //==
                         aSession.transfer(result, REL_SUCCESS);

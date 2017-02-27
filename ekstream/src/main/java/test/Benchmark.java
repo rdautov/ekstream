@@ -9,43 +9,27 @@ import java.io.IOException;
 
 public class Benchmark {
 
-    private static final String DETECTION_FILENAME = "/home/orkes/Desktop/nifi-1.0.1-standalone/benchmark/detection-f514f0a4-0159-1000-0a2a-36defe85ba98";
+    private static final String FILENAME = "/opt/nifi-1.0.1/RecogniseFaces-0523ecd1-015a-1000-3a3d-19023f1ac395-ready";
 
-    private static final String RECOGNITION_FILENAME = "/home/orkes/Desktop/nifi-1.0.1-standalone/benchmark/recognition-dcdaf9ef-0159-1000-e88f-d71797e6ce9e"
-
-            ;
 
     public static void main(String[] args) throws IOException {
 
-        BufferedReader br1 = new BufferedReader(new FileReader(DETECTION_FILENAME));
-
-        BufferedReader br2 = new BufferedReader(new FileReader(RECOGNITION_FILENAME));
-
-        Object[] lines = br2.lines().toArray();
+        BufferedReader br1 = new BufferedReader(new FileReader(FILENAME));
 
         String sCurrentLine;
 
         while ((sCurrentLine = br1.readLine()) != null) {
 
-            String[] output1 = sCurrentLine.split(";");
+            String[] output = sCurrentLine.split(";");
 
-            for (Object str : lines) {
-
-                String[] output2 = str.toString().split(";");
-
-                if (output1[0].equalsIgnoreCase(output2[0])) {
-                    //System.out.println(output1[0]);
-                    //System.out.println(output2[0]);
-                    //System.out.println("Detection: " + output1[1]);
-                    //System.out.println("Recognition: " + output2[1]);
-                    Double delay = Double.parseDouble(output2[1]) - Double.parseDouble(output1[1]);
-                    System.out.println(delay);
-                }
-            }
+            Double delay = Double.parseDouble(output[3]) - Double.parseDouble(output[1]);
+            System.out.println(delay*10);
 
         }
 
-
     }
+
+
+
 
 }

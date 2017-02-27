@@ -131,6 +131,8 @@ public class CaptureVideo extends EkstreamProcessor {
             });
 
             //benchmarking=====================================
+            flowFile = aSession.putAttribute(flowFile, "capture",
+                    String.valueOf(System.currentTimeMillis()));
             benchmark(flowFile.getAttribute(CoreAttributes.UUID.key()));
             //=================================================
 
