@@ -1,4 +1,4 @@
-processors.VideoCapturer
-processors.FaceDetector
-processors.FaceRecogniser
-processors.VideoFaceDetector
+processors.CaptureVideo
+processors.DetectFaces
+processors.RecogniseFaces
+processors.CaptureVideoDetectFaces
