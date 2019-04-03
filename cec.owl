@@ -7,7 +7,9 @@
 @base <http://it.kfu.ru/suc/cec> .
 
 <http://it.kfu.ru/suc/cec> rdf:type owl:Ontology ;
-                            owl:versionIRI <http://it.kfu.ru/suc/cec/1.0.1> .
+                            owl:versionIRI <http://it.kfu.ru/suc/cec/1.0.1> ;
+                            owl:imports <http://www.w3.org/ns/sosa/> ,
+                                        <http://www.w3.org/ns/ssn/> .
 
 #################################################################
 #    Annotation properties
@@ -26,7 +28,9 @@
 
 
 ###  http://it.kfu.ru/suc/cec#isFunctionallySuitableFor
-:isFunctionallySuitableFor rdf:type owl:ObjectProperty .
+:isFunctionallySuitableFor rdf:type owl:ObjectProperty ;
+                           rdfs:domain :Device ;
+                           rdfs:range :Task .
 
 
 ###  http://it.kfu.ru/suc/cec#isFunctionallySuitableForCaptureVideo
@@ -70,18 +74,64 @@
                  rdfs:subClassOf :Device .
 
 
-###  http://it.kfu.ru/suc/cec#Actuator
-:Actuator rdf:type owl:Class ;
-          rdfs:subClassOf :Hardware .
-
-
 ###  http://it.kfu.ru/suc/cec#CPU
 :CPU rdf:type owl:Class ;
      rdfs:subClassOf :Hardware .
 
 
+###  http://it.kfu.ru/suc/cec#CaptureVideo
+:CaptureVideo rdf:type owl:Class ;
+              rdfs:subClassOf :ISSTask .
+
+
+###  http://it.kfu.ru/suc/cec#CaptureVideoSuitableDeviceF
+:CaptureVideoSuitableDeviceF rdf:type owl:Class ;
+                             rdfs:subClassOf :ISSSuitableDevice .
+
+
+###  http://it.kfu.ru/suc/cec#Database
+:Database rdf:type owl:Class ;
+          rdfs:subClassOf :Software .
+
+
+###  http://it.kfu.ru/suc/cec#DetectFace
+:DetectFace rdf:type owl:Class ;
+            rdfs:subClassOf :ISSTask .
+
+
+###  http://it.kfu.ru/suc/cec#DetectFaceSuitableDeviceF
+:DetectFaceSuitableDeviceF rdf:type owl:Class ;
+                           rdfs:subClassOf :ISSSuitableDevice .
+
+
+###  http://it.kfu.ru/suc/cec#DetectLicensePlate
+:DetectLicensePlate rdf:type owl:Class ;
+                    rdfs:subClassOf :ISSTask .
+
+
+###  http://it.kfu.ru/suc/cec#DetectLicensePlateSuitableDeviceF
+:DetectLicensePlateSuitableDeviceF rdf:type owl:Class ;
+                                   rdfs:subClassOf :ISSSuitableDevice .
+
+
+###  http://it.kfu.ru/suc/cec#DetectLicensePlateSuitableDeviceNF
+:DetectLicensePlateSuitableDeviceNF rdf:type owl:Class ;
+                                    rdfs:subClassOf :DetectLicensePlateSuitableDeviceF .
+
+
+###  http://it.kfu.ru/suc/cec#DetectObject
+:DetectObject rdf:type owl:Class ;
+              rdfs:subClassOf :ISSTask .
+
+
+###  http://it.kfu.ru/suc/cec#DetectObjectSuitableDeviceF
+:DetectObjectSuitableDeviceF rdf:type owl:Class ;
+                             rdfs:subClassOf :ISSSuitableDevice .
+
+
 ###  http://it.kfu.ru/suc/cec#Device
-:Device rdf:type owl:Class .
+:Device rdf:type owl:Class ;
+        owl:equivalentClass <http://www.w3.org/ns/sosa/Platform> .
 
 
 ###  http://it.kfu.ru/suc/cec#FaceDetectionRecognition
@@ -91,7 +141,7 @@
 
 ###  http://it.kfu.ru/suc/cec#FunctionalProperty
 :FunctionalProperty rdf:type owl:Class ;
-                    rdfs:subClassOf :Property .
+                    rdfs:subClassOf <http://www.w3.org/ns/ssn/Property> .
 
 
 ###  http://it.kfu.ru/suc/cec#GPU
@@ -99,9 +149,19 @@
      rdfs:subClassOf :Hardware .
 
 
+###  http://it.kfu.ru/suc/cec#HDD
+:HDD rdf:type owl:Class ;
+     rdfs:subClassOf :Hardware .
+
+
 ###  http://it.kfu.ru/suc/cec#Hardware
 :Hardware rdf:type owl:Class ;
           rdfs:subClassOf :FunctionalProperty .
+
+
+###  http://it.kfu.ru/suc/cec#ISSSuitableDevice
+:ISSSuitableDevice rdf:type owl:Class ;
+                   rdfs:subClassOf :SuitableDevice .
 
 
 ###  http://it.kfu.ru/suc/cec#ISSTask
@@ -111,7 +171,7 @@
 
 ###  http://it.kfu.ru/suc/cec#ImageSensor
 :ImageSensor rdf:type owl:Class ;
-             rdfs:subClassOf :Sensor .
+             rdfs:subClassOf <http://www.w3.org/ns/sosa/Sensor> .
 
 
 ###  http://it.kfu.ru/suc/cec#LicensePlateDetectionRecognition
@@ -119,9 +179,29 @@
                                   rdfs:subClassOf :Software .
 
 
+###  http://it.kfu.ru/suc/cec#MessageQueue
+:MessageQueue rdf:type owl:Class ;
+              rdfs:subClassOf :Software .
+
+
+###  http://it.kfu.ru/suc/cec#Networking
+:Networking rdf:type owl:Class ;
+            rdfs:subClassOf :Hardware .
+
+
 ###  http://it.kfu.ru/suc/cec#NonFunctionalProperty
 :NonFunctionalProperty rdf:type owl:Class ;
-                       rdfs:subClassOf :Property .
+                       rdfs:subClassOf <http://www.w3.org/ns/ssn/Property> .
+
+
+###  http://it.kfu.ru/suc/cec#NotifyAlert
+:NotifyAlert rdf:type owl:Class ;
+             rdfs:subClassOf :ISSTask .
+
+
+###  http://it.kfu.ru/suc/cec#NotifyAlertSuitableDeviceF
+:NotifyAlertSuitableDeviceF rdf:type owl:Class ;
+                            rdfs:subClassOf :ISSSuitableDevice .
 
 
 ###  http://it.kfu.ru/suc/cec#ObjectDetectionRecognition
@@ -129,23 +209,47 @@
                             rdfs:subClassOf :Software .
 
 
-###  http://it.kfu.ru/suc/cec#Property
-:Property rdf:type owl:Class .
-
-
 ###  http://it.kfu.ru/suc/cec#RAM
 :RAM rdf:type owl:Class ;
      rdfs:subClassOf :Hardware .
 
 
+###  http://it.kfu.ru/suc/cec#RecogniseFaceSuitableDeviceF
+:RecogniseFaceSuitableDeviceF rdf:type owl:Class ;
+                              rdfs:subClassOf :ISSSuitableDevice .
+
+
+###  http://it.kfu.ru/suc/cec#RecogniseFaceSuitableDeviceNF
+:RecogniseFaceSuitableDeviceNF rdf:type owl:Class ;
+                               rdfs:subClassOf :RecogniseFaceSuitableDeviceF .
+
+
+###  http://it.kfu.ru/suc/cec#RecogniseLicensePlate
+:RecogniseLicensePlate rdf:type owl:Class ;
+                       rdfs:subClassOf :ISSTask .
+
+
+###  http://it.kfu.ru/suc/cec#RecogniseLicensePlateSuitableDeviceF
+:RecogniseLicensePlateSuitableDeviceF rdf:type owl:Class ;
+                                      rdfs:subClassOf :ISSSuitableDevice .
+
+
+###  http://it.kfu.ru/suc/cec#RecognisePlate
+:RecognisePlate rdf:type owl:Class ;
+                rdfs:subClassOf :ISSTask .
+
+
 ###  http://it.kfu.ru/suc/cec#SensingDevice
 :SensingDevice rdf:type owl:Class ;
+               owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                          [ rdf:type owl:Restriction ;
+                                                            owl:onProperty <http://www.w3.org/ns/sosa/hosts> ;
+                                                            owl:someValuesFrom <http://www.w3.org/ns/sosa/Sensor>
+                                                          ]
+                                                        ) ;
+                                     rdf:type owl:Class
+                                   ] ;
                rdfs:subClassOf :Device .
-
-
-###  http://it.kfu.ru/suc/cec#Sensor
-:Sensor rdf:type owl:Class ;
-        rdfs:subClassOf :Hardware .
 
 
 ###  http://it.kfu.ru/suc/cec#Software
@@ -153,9 +257,31 @@
           rdfs:subClassOf :FunctionalProperty .
 
 
+###  http://it.kfu.ru/suc/cec#Store
+:Store rdf:type owl:Class ;
+       rdfs:subClassOf :ISSTask .
+
+
+###  http://it.kfu.ru/suc/cec#StoreSuitableDeviceF
+:StoreSuitableDeviceF rdf:type owl:Class ;
+                      rdfs:subClassOf :ISSSuitableDevice .
+
+
+###  http://it.kfu.ru/suc/cec#StoreSuitableDeviceNF
+:StoreSuitableDeviceNF rdf:type owl:Class ;
+                       rdfs:subClassOf :StoreSuitableDeviceF .
+
+
+###  http://it.kfu.ru/suc/cec#SuitableDevice
+:SuitableDevice rdf:type owl:Class ;
+                rdfs:subClassOf :Device .
+
+
 ###  http://it.kfu.ru/suc/cec#Task
 :Task rdf:type owl:Class .
 
+
+###  http://www.w3.org/ns/sosa/Platform
 
 #################################################################
 #    Individuals
@@ -258,6 +384,23 @@
 ###  http://it.kfu.ru/suc/cec#YOLO
 :YOLO rdf:type owl:NamedIndividual ,
                :ObjectDetectionRecognition .
+
+
+#################################################################
+#    General axioms
+#################################################################
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :CaptureVideo
+                :DetectFace
+                :DetectLicensePlate
+                :DetectObject
+                :NotifyAlert
+                :RecogniseLicensePlate
+                :RecognisePlate
+                :Store
+              )
+] .
 
 
 #################################################################
