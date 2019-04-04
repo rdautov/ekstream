@@ -49,6 +49,39 @@
                                           rdfs:subPropertyOf :isNonFunctionallySuitableFor .
 
 
+###  http://it.kfu.ru/suc/dia-cec#hasBranch
+:hasBranch rdf:type owl:ObjectProperty ;
+           rdfs:subPropertyOf :hasNext .
+
+
+###  http://it.kfu.ru/suc/dia-cec#hasFork
+:hasFork rdf:type owl:ObjectProperty ;
+         rdfs:subPropertyOf :hasNext .
+
+
+###  http://it.kfu.ru/suc/dia-cec#hasNext
+:hasNext rdf:type owl:ObjectProperty ;
+         owl:inverseOf :hasPrevious ;
+         rdfs:domain :Task ;
+         rdfs:range :Task .
+
+
+###  http://it.kfu.ru/suc/dia-cec#hasPrevious
+:hasPrevious rdf:type owl:ObjectProperty ;
+             rdfs:domain :Task ;
+             rdfs:range :Task .
+
+
+###  http://it.kfu.ru/suc/dia-cec#hasPreviousBranch
+:hasPreviousBranch rdf:type owl:ObjectProperty ;
+                   rdfs:subPropertyOf :hasPrevious .
+
+
+###  http://it.kfu.ru/suc/dia-cec#hasPreviousJoin
+:hasPreviousJoin rdf:type owl:ObjectProperty ;
+                 rdfs:subPropertyOf :hasPrevious .
+
+
 #################################################################
 #    Data properties
 #################################################################
