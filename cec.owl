@@ -4,12 +4,12 @@
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@base <http://it.kfu.ru/suc/cec> .
+@base <http://it.kfu.ru/suc/dia-cec> .
 
-<http://it.kfu.ru/suc/cec> rdf:type owl:Ontology ;
-                            owl:versionIRI <http://it.kfu.ru/suc/cec/1.0.1> ;
-                            owl:imports <http://www.w3.org/ns/sosa/> ,
-                                        <http://www.w3.org/ns/ssn/> .
+<http://it.kfu.ru/suc/dia-cec> rdf:type owl:Ontology ;
+                                owl:versionIRI <http://it.kfu.ru/suc/dia-cec/1.0.1> ;
+                                owl:imports <http://www.w3.org/ns/sosa/> ,
+                                            <http://www.w3.org/ns/ssn/> .
 
 #################################################################
 #    Annotation properties
@@ -84,9 +84,65 @@
               rdfs:subClassOf :ISSTask .
 
 
-###  http://it.kfu.ru/suc/cec#CaptureVideoSuitableDeviceF
-:CaptureVideoSuitableDeviceF rdf:type owl:Class ;
-                             rdfs:subClassOf :ISSSuitableDevice .
+###  http://it.kfu.ru/suc/cec#CaptureVideoFunctionallySuitableDevice
+:CaptureVideoFunctionallySuitableDevice rdf:type owl:Class ;
+                                        owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                                                   [ rdf:type owl:Restriction ;
+                                                                                     owl:onProperty :hasFunctionalProperty ;
+                                                                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                     owl:onClass :CPU
+                                                                                   ]
+                                                                                   [ rdf:type owl:Restriction ;
+                                                                                     owl:onProperty :hasFunctionalProperty ;
+                                                                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                     owl:onClass :GPU
+                                                                                   ]
+                                                                                   [ rdf:type owl:Restriction ;
+                                                                                     owl:onProperty :hasFunctionalProperty ;
+                                                                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                     owl:onClass :ImageSensor
+                                                                                   ]
+                                                                                   [ rdf:type owl:Restriction ;
+                                                                                     owl:onProperty :hasFunctionalProperty ;
+                                                                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                     owl:onClass :RAM
+                                                                                   ]
+                                                                                 ) ;
+                                                              rdf:type owl:Class
+                                                            ] ;
+                                        rdfs:subClassOf :ISSSuitableDevice ,
+                                                        [ rdf:type owl:Restriction ;
+                                                          owl:onProperty :isFunctionallySuitableFor ;
+                                                          owl:someValuesFrom :CaptureVideo
+                                                        ] .
+
+
+###  http://it.kfu.ru/suc/cec#CaptureVideoNonFunctionallySuitableDevice
+:CaptureVideoNonFunctionallySuitableDevice rdf:type owl:Class ;
+                                           owl:equivalentClass [ owl:intersectionOf ( :CaptureVideoFunctionallySuitableDevice
+                                                                                      [ rdf:type owl:Restriction ;
+                                                                                        owl:onProperty :hasVariety ;
+                                                                                        owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                                                                        owl:onDataRange xsd:float
+                                                                                      ]
+                                                                                      [ rdf:type owl:Restriction ;
+                                                                                        owl:onProperty :hasVelocity ;
+                                                                                        owl:minQualifiedCardinality "100"^^xsd:nonNegativeInteger ;
+                                                                                        owl:onDataRange xsd:integer
+                                                                                      ]
+                                                                                      [ rdf:type owl:Restriction ;
+                                                                                        owl:onProperty :hasVolume ;
+                                                                                        owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                        owl:onDataRange xsd:integer
+                                                                                      ]
+                                                                                    ) ;
+                                                                 rdf:type owl:Class
+                                                               ] ;
+                                           rdfs:subClassOf :CaptureVideoFunctionallySuitableDevice ,
+                                                           [ rdf:type owl:Restriction ;
+                                                             owl:onProperty :isNonFunctionallySuitableFor ;
+                                                             owl:someValuesFrom :CaptureVideo
+                                                           ] .
 
 
 ###  http://it.kfu.ru/suc/cec#Database
@@ -99,9 +155,65 @@
             rdfs:subClassOf :ISSTask .
 
 
-###  http://it.kfu.ru/suc/cec#DetectFaceSuitableDeviceF
-:DetectFaceSuitableDeviceF rdf:type owl:Class ;
-                           rdfs:subClassOf :ISSSuitableDevice .
+###  http://it.kfu.ru/suc/cec#DetectFaceFunctionallySuitableDevice
+:DetectFaceFunctionallySuitableDevice rdf:type owl:Class ;
+                                      owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                                                 [ rdf:type owl:Restriction ;
+                                                                                   owl:onProperty :hasFunctionalProperty ;
+                                                                                   owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                   owl:onClass :CPU
+                                                                                 ]
+                                                                                 [ rdf:type owl:Restriction ;
+                                                                                   owl:onProperty :hasFunctionalProperty ;
+                                                                                   owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                   owl:onClass :FaceDetectionRecognition
+                                                                                 ]
+                                                                                 [ rdf:type owl:Restriction ;
+                                                                                   owl:onProperty :hasFunctionalProperty ;
+                                                                                   owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                   owl:onClass :GPU
+                                                                                 ]
+                                                                                 [ rdf:type owl:Restriction ;
+                                                                                   owl:onProperty :hasFunctionalProperty ;
+                                                                                   owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                   owl:onClass :RAM
+                                                                                 ]
+                                                                               ) ;
+                                                            rdf:type owl:Class
+                                                          ] ;
+                                      rdfs:subClassOf :ISSSuitableDevice ,
+                                                      [ rdf:type owl:Restriction ;
+                                                        owl:onProperty :isFunctionallySuitableFor ;
+                                                        owl:someValuesFrom :DetectFace
+                                                      ] .
+
+
+###  http://it.kfu.ru/suc/cec#DetectFaceNonFunctionallySuitableDevice
+:DetectFaceNonFunctionallySuitableDevice rdf:type owl:Class ;
+                                         owl:equivalentClass [ owl:intersectionOf ( :DetectFaceFunctionallySuitableDevice
+                                                                                    [ rdf:type owl:Restriction ;
+                                                                                      owl:onProperty :hasVariety ;
+                                                                                      owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                                                                      owl:onDataRange xsd:float
+                                                                                    ]
+                                                                                    [ rdf:type owl:Restriction ;
+                                                                                      owl:onProperty :hasVelocity ;
+                                                                                      owl:minQualifiedCardinality "100"^^xsd:nonNegativeInteger ;
+                                                                                      owl:onDataRange xsd:integer
+                                                                                    ]
+                                                                                    [ rdf:type owl:Restriction ;
+                                                                                      owl:onProperty :hasVolume ;
+                                                                                      owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                      owl:onDataRange xsd:integer
+                                                                                    ]
+                                                                                  ) ;
+                                                               rdf:type owl:Class
+                                                             ] ;
+                                         rdfs:subClassOf :DetectFaceFunctionallySuitableDevice ,
+                                                         [ rdf:type owl:Restriction ;
+                                                           owl:onProperty :isNonFunctionallySuitableFor ;
+                                                           owl:someValuesFrom :DetectFace
+                                                         ] .
 
 
 ###  http://it.kfu.ru/suc/cec#DetectLicensePlate
@@ -109,14 +221,65 @@
                     rdfs:subClassOf :ISSTask .
 
 
-###  http://it.kfu.ru/suc/cec#DetectLicensePlateSuitableDeviceF
-:DetectLicensePlateSuitableDeviceF rdf:type owl:Class ;
-                                   rdfs:subClassOf :ISSSuitableDevice .
+###  http://it.kfu.ru/suc/cec#DetectLicensePlateFunctionallySuitableDevice
+:DetectLicensePlateFunctionallySuitableDevice rdf:type owl:Class ;
+                                              owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                                                         [ rdf:type owl:Restriction ;
+                                                                                           owl:onProperty :hasFunctionalProperty ;
+                                                                                           owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                           owl:onClass :CPU
+                                                                                         ]
+                                                                                         [ rdf:type owl:Restriction ;
+                                                                                           owl:onProperty :hasFunctionalProperty ;
+                                                                                           owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                           owl:onClass :GPU
+                                                                                         ]
+                                                                                         [ rdf:type owl:Restriction ;
+                                                                                           owl:onProperty :hasFunctionalProperty ;
+                                                                                           owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                           owl:onClass :LicensePlateDetectionRecognition
+                                                                                         ]
+                                                                                         [ rdf:type owl:Restriction ;
+                                                                                           owl:onProperty :hasFunctionalProperty ;
+                                                                                           owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                           owl:onClass :RAM
+                                                                                         ]
+                                                                                       ) ;
+                                                                    rdf:type owl:Class
+                                                                  ] ;
+                                              rdfs:subClassOf :ISSSuitableDevice ,
+                                                              [ rdf:type owl:Restriction ;
+                                                                owl:onProperty :isFunctionallySuitableFor ;
+                                                                owl:someValuesFrom :DetectLicensePlate
+                                                              ] .
 
 
-###  http://it.kfu.ru/suc/cec#DetectLicensePlateSuitableDeviceNF
-:DetectLicensePlateSuitableDeviceNF rdf:type owl:Class ;
-                                    rdfs:subClassOf :DetectLicensePlateSuitableDeviceF .
+###  http://it.kfu.ru/suc/cec#DetectLicensePlateNonFunctionallySuitableDevice
+:DetectLicensePlateNonFunctionallySuitableDevice rdf:type owl:Class ;
+                                                 owl:equivalentClass [ owl:intersectionOf ( :DetectLicensePlateFunctionallySuitableDevice
+                                                                                            [ rdf:type owl:Restriction ;
+                                                                                              owl:onProperty :hasVariety ;
+                                                                                              owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                                                                              owl:onDataRange xsd:float
+                                                                                            ]
+                                                                                            [ rdf:type owl:Restriction ;
+                                                                                              owl:onProperty :hasVelocity ;
+                                                                                              owl:minQualifiedCardinality "100"^^xsd:nonNegativeInteger ;
+                                                                                              owl:onDataRange xsd:integer
+                                                                                            ]
+                                                                                            [ rdf:type owl:Restriction ;
+                                                                                              owl:onProperty :hasVolume ;
+                                                                                              owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                              owl:onDataRange xsd:integer
+                                                                                            ]
+                                                                                          ) ;
+                                                                       rdf:type owl:Class
+                                                                     ] ;
+                                                 rdfs:subClassOf :DetectLicensePlateFunctionallySuitableDevice ,
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty :isNonFunctionallySuitableFor ;
+                                                                   owl:someValuesFrom :DetectLicensePlate
+                                                                 ] .
 
 
 ###  http://it.kfu.ru/suc/cec#DetectObject
@@ -124,9 +287,65 @@
               rdfs:subClassOf :ISSTask .
 
 
-###  http://it.kfu.ru/suc/cec#DetectObjectSuitableDeviceF
-:DetectObjectSuitableDeviceF rdf:type owl:Class ;
-                             rdfs:subClassOf :ISSSuitableDevice .
+###  http://it.kfu.ru/suc/cec#DetectObjectFunctionallySuitableDevice
+:DetectObjectFunctionallySuitableDevice rdf:type owl:Class ;
+                                        owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                                                   [ rdf:type owl:Restriction ;
+                                                                                     owl:onProperty :hasFunctionalProperty ;
+                                                                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                     owl:onClass :CPU
+                                                                                   ]
+                                                                                   [ rdf:type owl:Restriction ;
+                                                                                     owl:onProperty :hasFunctionalProperty ;
+                                                                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                     owl:onClass :GPU
+                                                                                   ]
+                                                                                   [ rdf:type owl:Restriction ;
+                                                                                     owl:onProperty :hasFunctionalProperty ;
+                                                                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                     owl:onClass :ObjectDetectionRecognition
+                                                                                   ]
+                                                                                   [ rdf:type owl:Restriction ;
+                                                                                     owl:onProperty :hasFunctionalProperty ;
+                                                                                     owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                     owl:onClass :RAM
+                                                                                   ]
+                                                                                 ) ;
+                                                              rdf:type owl:Class
+                                                            ] ;
+                                        rdfs:subClassOf :ISSSuitableDevice ,
+                                                        [ rdf:type owl:Restriction ;
+                                                          owl:onProperty :isFunctionallySuitableFor ;
+                                                          owl:someValuesFrom :DetectObject
+                                                        ] .
+
+
+###  http://it.kfu.ru/suc/cec#DetectObjectNonFunctionallySuitableDevice
+:DetectObjectNonFunctionallySuitableDevice rdf:type owl:Class ;
+                                           owl:equivalentClass [ owl:intersectionOf ( :DetectObjectFunctionallySuitableDevice
+                                                                                      [ rdf:type owl:Restriction ;
+                                                                                        owl:onProperty :hasVariety ;
+                                                                                        owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                                                                        owl:onDataRange xsd:float
+                                                                                      ]
+                                                                                      [ rdf:type owl:Restriction ;
+                                                                                        owl:onProperty :hasVelocity ;
+                                                                                        owl:minQualifiedCardinality "200"^^xsd:nonNegativeInteger ;
+                                                                                        owl:onDataRange xsd:integer
+                                                                                      ]
+                                                                                      [ rdf:type owl:Restriction ;
+                                                                                        owl:onProperty :hasVolume ;
+                                                                                        owl:minQualifiedCardinality "2000"^^xsd:nonNegativeInteger ;
+                                                                                        owl:onDataRange xsd:integer
+                                                                                      ]
+                                                                                    ) ;
+                                                                 rdf:type owl:Class
+                                                               ] ;
+                                           rdfs:subClassOf :DetectObjectFunctionallySuitableDevice ,
+                                                           [ rdf:type owl:Restriction ;
+                                                             owl:onProperty :isNonFunctionallySuitableFor ;
+                                                             owl:someValuesFrom :DetectObject
+                                                           ] .
 
 
 ###  http://it.kfu.ru/suc/cec#Device
@@ -199,9 +418,60 @@
              rdfs:subClassOf :ISSTask .
 
 
-###  http://it.kfu.ru/suc/cec#NotifyAlertSuitableDeviceF
-:NotifyAlertSuitableDeviceF rdf:type owl:Class ;
-                            rdfs:subClassOf :ISSSuitableDevice .
+###  http://it.kfu.ru/suc/cec#NotifyAlertFunctionallySuitableDevice
+:NotifyAlertFunctionallySuitableDevice rdf:type owl:Class ;
+                                       owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                                                  [ rdf:type owl:Restriction ;
+                                                                                    owl:onProperty :hasFunctionalProperty ;
+                                                                                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                    owl:onClass :CPU
+                                                                                  ]
+                                                                                  [ rdf:type owl:Restriction ;
+                                                                                    owl:onProperty :hasFunctionalProperty ;
+                                                                                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                    owl:onClass :MessageQueue
+                                                                                  ]
+                                                                                  [ rdf:type owl:Restriction ;
+                                                                                    owl:onProperty :hasFunctionalProperty ;
+                                                                                    owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                    owl:onClass :RAM
+                                                                                  ]
+                                                                                ) ;
+                                                             rdf:type owl:Class
+                                                           ] ;
+                                       rdfs:subClassOf :ISSSuitableDevice ,
+                                                       [ rdf:type owl:Restriction ;
+                                                         owl:onProperty :isFunctionallySuitableFor ;
+                                                         owl:someValuesFrom :NotifyAlert
+                                                       ] .
+
+
+###  http://it.kfu.ru/suc/cec#NotifyAlertNonFunctionallySuitableDevice
+:NotifyAlertNonFunctionallySuitableDevice rdf:type owl:Class ;
+                                          owl:equivalentClass [ owl:intersectionOf ( :NotifyAlertFunctionallySuitableDevice
+                                                                                     [ rdf:type owl:Restriction ;
+                                                                                       owl:onProperty :hasVelocity ;
+                                                                                       owl:minQualifiedCardinality "100"^^xsd:nonNegativeInteger ;
+                                                                                       owl:onDataRange xsd:integer
+                                                                                     ]
+                                                                                     [ rdf:type owl:Restriction ;
+                                                                                       owl:onProperty :hasVolume ;
+                                                                                       owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                       owl:onDataRange xsd:integer
+                                                                                     ]
+                                                                                     [ rdf:type owl:Restriction ;
+                                                                                       owl:onProperty :hasVariety ;
+                                                                                       owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                       owl:onDataRange xsd:float
+                                                                                     ]
+                                                                                   ) ;
+                                                                rdf:type owl:Class
+                                                              ] ;
+                                          rdfs:subClassOf :NotifyAlertFunctionallySuitableDevice ,
+                                                          [ rdf:type owl:Restriction ;
+                                                            owl:onProperty :isNonFunctionallySuitableFor ;
+                                                            owl:someValuesFrom :NotifyAlert
+                                                          ] .
 
 
 ###  http://it.kfu.ru/suc/cec#ObjectDetectionRecognition
@@ -214,14 +484,65 @@
      rdfs:subClassOf :Hardware .
 
 
-###  http://it.kfu.ru/suc/cec#RecogniseFaceSuitableDeviceF
-:RecogniseFaceSuitableDeviceF rdf:type owl:Class ;
-                              rdfs:subClassOf :ISSSuitableDevice .
+###  http://it.kfu.ru/suc/cec#RecogniseFaceFunctionallySuitableDevice
+:RecogniseFaceFunctionallySuitableDevice rdf:type owl:Class ;
+                                         owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                                                    [ rdf:type owl:Restriction ;
+                                                                                      owl:onProperty :hasFunctionalProperty ;
+                                                                                      owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                      owl:onClass :CPU
+                                                                                    ]
+                                                                                    [ rdf:type owl:Restriction ;
+                                                                                      owl:onProperty :hasFunctionalProperty ;
+                                                                                      owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                      owl:onClass :FaceDetectionRecognition
+                                                                                    ]
+                                                                                    [ rdf:type owl:Restriction ;
+                                                                                      owl:onProperty :hasFunctionalProperty ;
+                                                                                      owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                      owl:onClass :GPU
+                                                                                    ]
+                                                                                    [ rdf:type owl:Restriction ;
+                                                                                      owl:onProperty :hasFunctionalProperty ;
+                                                                                      owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                      owl:onClass :RAM
+                                                                                    ]
+                                                                                  ) ;
+                                                               rdf:type owl:Class
+                                                             ] ;
+                                         rdfs:subClassOf :ISSSuitableDevice ,
+                                                         [ rdf:type owl:Restriction ;
+                                                           owl:onProperty :isFunctionallySuitableFor ;
+                                                           owl:someValuesFrom :RecogniseFace
+                                                         ] .
 
 
-###  http://it.kfu.ru/suc/cec#RecogniseFaceSuitableDeviceNF
-:RecogniseFaceSuitableDeviceNF rdf:type owl:Class ;
-                               rdfs:subClassOf :RecogniseFaceSuitableDeviceF .
+###  http://it.kfu.ru/suc/cec#RecogniseFaceNonFunctionallySuitableDevice
+:RecogniseFaceNonFunctionallySuitableDevice rdf:type owl:Class ;
+                                            owl:equivalentClass [ owl:intersectionOf ( :RecogniseFaceFunctionallySuitableDevice
+                                                                                       [ rdf:type owl:Restriction ;
+                                                                                         owl:onProperty :hasVariety ;
+                                                                                         owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                                                                         owl:onDataRange xsd:float
+                                                                                       ]
+                                                                                       [ rdf:type owl:Restriction ;
+                                                                                         owl:onProperty :hasVelocity ;
+                                                                                         owl:minQualifiedCardinality "100"^^xsd:nonNegativeInteger ;
+                                                                                         owl:onDataRange xsd:integer
+                                                                                       ]
+                                                                                       [ rdf:type owl:Restriction ;
+                                                                                         owl:onProperty :hasVolume ;
+                                                                                         owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                         owl:onDataRange xsd:integer
+                                                                                       ]
+                                                                                     ) ;
+                                                                  rdf:type owl:Class
+                                                                ] ;
+                                            rdfs:subClassOf :RecogniseFaceFunctionallySuitableDevice ,
+                                                            [ rdf:type owl:Restriction ;
+                                                              owl:onProperty :isNonFunctionallySuitableFor ;
+                                                              owl:someValuesFrom :RecogniseFace
+                                                            ] .
 
 
 ###  http://it.kfu.ru/suc/cec#RecogniseLicensePlate
@@ -229,14 +550,65 @@
                        rdfs:subClassOf :ISSTask .
 
 
-###  http://it.kfu.ru/suc/cec#RecogniseLicensePlateSuitableDeviceF
-:RecogniseLicensePlateSuitableDeviceF rdf:type owl:Class ;
-                                      rdfs:subClassOf :ISSSuitableDevice .
+###  http://it.kfu.ru/suc/cec#RecogniseLicensePlateFunctionallySuitableDevice
+:RecogniseLicensePlateFunctionallySuitableDevice rdf:type owl:Class ;
+                                                 owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                                                            [ rdf:type owl:Restriction ;
+                                                                                              owl:onProperty :hasFunctionalProperty ;
+                                                                                              owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                              owl:onClass :CPU
+                                                                                            ]
+                                                                                            [ rdf:type owl:Restriction ;
+                                                                                              owl:onProperty :hasFunctionalProperty ;
+                                                                                              owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                              owl:onClass :GPU
+                                                                                            ]
+                                                                                            [ rdf:type owl:Restriction ;
+                                                                                              owl:onProperty :hasFunctionalProperty ;
+                                                                                              owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                              owl:onClass :LicensePlateDetectionRecognition
+                                                                                            ]
+                                                                                            [ rdf:type owl:Restriction ;
+                                                                                              owl:onProperty :hasFunctionalProperty ;
+                                                                                              owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                              owl:onClass :RAM
+                                                                                            ]
+                                                                                          ) ;
+                                                                       rdf:type owl:Class
+                                                                     ] ;
+                                                 rdfs:subClassOf :ISSSuitableDevice ,
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty :isFunctionallySuitableFor ;
+                                                                   owl:someValuesFrom :RecogniseLicensePlate
+                                                                 ] .
 
 
-###  http://it.kfu.ru/suc/cec#RecognisePlate
-:RecognisePlate rdf:type owl:Class ;
-                rdfs:subClassOf :ISSTask .
+###  http://it.kfu.ru/suc/cec#RecogniseLicensePlateNonFunctionallySuitableDevice
+:RecogniseLicensePlateNonFunctionallySuitableDevice rdf:type owl:Class ;
+                                                    owl:equivalentClass [ owl:intersectionOf ( :RecogniseLicensePlateFunctionallySuitableDevice
+                                                                                               [ rdf:type owl:Restriction ;
+                                                                                                 owl:onProperty :hasVariety ;
+                                                                                                 owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                                                                                 owl:onDataRange xsd:float
+                                                                                               ]
+                                                                                               [ rdf:type owl:Restriction ;
+                                                                                                 owl:onProperty :hasVelocity ;
+                                                                                                 owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                                 owl:onDataRange xsd:integer
+                                                                                               ]
+                                                                                               [ rdf:type owl:Restriction ;
+                                                                                                 owl:onProperty :hasVolume ;
+                                                                                                 owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                                 owl:onDataRange xsd:integer
+                                                                                               ]
+                                                                                             ) ;
+                                                                          rdf:type owl:Class
+                                                                        ] ;
+                                                    rdfs:subClassOf :RecogniseLicensePlateFunctionallySuitableDevice ,
+                                                                    [ rdf:type owl:Restriction ;
+                                                                      owl:onProperty :isFunctionallySuitableFor ;
+                                                                      owl:someValuesFrom :RecogniseLicensePlate
+                                                                    ] .
 
 
 ###  http://it.kfu.ru/suc/cec#SensingDevice
@@ -262,14 +634,60 @@
        rdfs:subClassOf :ISSTask .
 
 
-###  http://it.kfu.ru/suc/cec#StoreSuitableDeviceF
-:StoreSuitableDeviceF rdf:type owl:Class ;
-                      rdfs:subClassOf :ISSSuitableDevice .
+###  http://it.kfu.ru/suc/cec#StoreFunctionallySuitableDevice
+:StoreFunctionallySuitableDevice rdf:type owl:Class ;
+                                 owl:equivalentClass [ owl:intersectionOf ( :Device
+                                                                            [ rdf:type owl:Restriction ;
+                                                                              owl:onProperty :hasFunctionalProperty ;
+                                                                              owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                              owl:onClass :CPU
+                                                                            ]
+                                                                            [ rdf:type owl:Restriction ;
+                                                                              owl:onProperty :hasFunctionalProperty ;
+                                                                              owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                              owl:onClass :Database
+                                                                            ]
+                                                                            [ rdf:type owl:Restriction ;
+                                                                              owl:onProperty :hasFunctionalProperty ;
+                                                                              owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                              owl:onClass :RAM
+                                                                            ]
+                                                                          ) ;
+                                                       rdf:type owl:Class
+                                                     ] ;
+                                 rdfs:subClassOf :ISSSuitableDevice ,
+                                                 [ rdf:type owl:Restriction ;
+                                                   owl:onProperty :isFunctionallySuitableFor ;
+                                                   owl:someValuesFrom :Store
+                                                 ] .
 
 
-###  http://it.kfu.ru/suc/cec#StoreSuitableDeviceNF
-:StoreSuitableDeviceNF rdf:type owl:Class ;
-                       rdfs:subClassOf :StoreSuitableDeviceF .
+###  http://it.kfu.ru/suc/cec#StoreNonFunctionallySuitableDevice
+:StoreNonFunctionallySuitableDevice rdf:type owl:Class ;
+                                    owl:equivalentClass [ owl:intersectionOf ( :StoreFunctionallySuitableDevice
+                                                                               [ rdf:type owl:Restriction ;
+                                                                                 owl:onProperty :hasVelocity ;
+                                                                                 owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                 owl:onDataRange xsd:integer
+                                                                               ]
+                                                                               [ rdf:type owl:Restriction ;
+                                                                                 owl:onProperty :hasVolume ;
+                                                                                 owl:minQualifiedCardinality "1000"^^xsd:nonNegativeInteger ;
+                                                                                 owl:onDataRange xsd:integer
+                                                                               ]
+                                                                               [ rdf:type owl:Restriction ;
+                                                                                 owl:onProperty :hasVariety ;
+                                                                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                                                                 owl:onDataRange xsd:float
+                                                                               ]
+                                                                             ) ;
+                                                          rdf:type owl:Class
+                                                        ] ;
+                                    rdfs:subClassOf :StoreFunctionallySuitableDevice ,
+                                                    [ rdf:type owl:Restriction ;
+                                                      owl:onProperty :isNonFunctionallySuitableFor ;
+                                                      owl:someValuesFrom :Store
+                                                    ] .
 
 
 ###  http://it.kfu.ru/suc/cec#SuitableDevice
@@ -279,6 +697,11 @@
 
 ###  http://it.kfu.ru/suc/cec#Task
 :Task rdf:type owl:Class .
+
+
+###  http://it.kfu.ru/suc/dia-cec#RecogniseFace
+:RecogniseFace rdf:type owl:Class ;
+               rdfs:subClassOf :ISSTask .
 
 
 ###  http://www.w3.org/ns/sosa/Platform
@@ -387,31 +810,14 @@
 
 
 #################################################################
-#    General axioms
-#################################################################
-
-[ rdf:type owl:AllDisjointClasses ;
-  owl:members ( :CaptureVideo
-                :DetectFace
-                :DetectLicensePlate
-                :DetectObject
-                :NotifyAlert
-                :RecogniseLicensePlate
-                :RecognisePlate
-                :Store
-              )
-] .
-
-
-#################################################################
 #    Rules
 #################################################################
-
-:r rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
 
 :d rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
 
 :i rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
+
+:r rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
 
 :c rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
 
@@ -419,9 +825,9 @@
 
 :odr rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
 
-:var rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
-
 :vol rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
+
+:var rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
 
 :vel rdf:type <http://www.w3.org/2003/11/swrl#Variable> .
 
@@ -430,20 +836,20 @@
    rdfs:label "CaptureVideoF"^^xsd:string ;
    rdf:type <http://www.w3.org/2003/11/swrl#Imp> ;
    <http://www.w3.org/2003/11/swrl#body> [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                           rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
-                                                       <http://www.w3.org/2003/11/swrl#classPredicate> :RAM ;
-                                                       <http://www.w3.org/2003/11/swrl#argument1> :r
+                                           rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
+                                                       <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
+                                                       <http://www.w3.org/2003/11/swrl#argument1> :d ;
+                                                       <http://www.w3.org/2003/11/swrl#argument2> :i
                                                      ] ;
                                            rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                      rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
-                                                                  <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
-                                                                  <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                  <http://www.w3.org/2003/11/swrl#argument2> :i
+                                                      rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
+                                                                  <http://www.w3.org/2003/11/swrl#classPredicate> :ImageSensor ;
+                                                                  <http://www.w3.org/2003/11/swrl#argument1> :i
                                                                 ] ;
                                                       rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                  rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
-                                                                             <http://www.w3.org/2003/11/swrl#classPredicate> :Device ;
-                                                                             <http://www.w3.org/2003/11/swrl#argument1> :d
+                                                                             <http://www.w3.org/2003/11/swrl#classPredicate> :RAM ;
+                                                                             <http://www.w3.org/2003/11/swrl#argument1> :r
                                                                            ] ;
                                                                  rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                             rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
@@ -459,24 +865,24 @@
                                                                                                   rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
                                                                                                               <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
                                                                                                               <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#argument2> :g
+                                                                                                              <http://www.w3.org/2003/11/swrl#argument2> :r
                                                                                                             ] ;
                                                                                                   rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                                                              rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#classPredicate> :ImageSensor ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#argument1> :i
+                                                                                                                         <http://www.w3.org/2003/11/swrl#classPredicate> :Device ;
+                                                                                                                         <http://www.w3.org/2003/11/swrl#argument1> :d
                                                                                                                        ] ;
                                                                                                              rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                                                                         rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
                                                                                                                                     <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
                                                                                                                                     <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                                                    <http://www.w3.org/2003/11/swrl#argument2> :r
+                                                                                                                                    <http://www.w3.org/2003/11/swrl#argument2> :c
                                                                                                                                   ] ;
                                                                                                                         rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                                                                                    rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
                                                                                                                                                <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
                                                                                                                                                <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                                                               <http://www.w3.org/2003/11/swrl#argument2> :c
+                                                                                                                                               <http://www.w3.org/2003/11/swrl#argument2> :g
                                                                                                                                              ] ;
                                                                                                                                    rdf:rest rdf:nil
                                                                                                                                  ]
@@ -504,40 +910,40 @@
    rdf:type <http://www.w3.org/2003/11/swrl#Imp> ;
    <http://www.w3.org/2003/11/swrl#body> [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                            rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
-                                                       <http://www.w3.org/2003/11/swrl#classPredicate> :ObjectDetectionRecognition ;
-                                                       <http://www.w3.org/2003/11/swrl#argument1> :odr
+                                                       <http://www.w3.org/2003/11/swrl#classPredicate> :RAM ;
+                                                       <http://www.w3.org/2003/11/swrl#argument1> :r
                                                      ] ;
                                            rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                       rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
-                                                                  <http://www.w3.org/2003/11/swrl#classPredicate> :RAM ;
-                                                                  <http://www.w3.org/2003/11/swrl#argument1> :r
+                                                                  <http://www.w3.org/2003/11/swrl#classPredicate> :CPU ;
+                                                                  <http://www.w3.org/2003/11/swrl#argument1> :c
                                                                 ] ;
                                                       rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                  rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
-                                                                             <http://www.w3.org/2003/11/swrl#classPredicate> :Device ;
-                                                                             <http://www.w3.org/2003/11/swrl#argument1> :d
+                                                                             <http://www.w3.org/2003/11/swrl#classPredicate> :GPU ;
+                                                                             <http://www.w3.org/2003/11/swrl#argument1> :g
                                                                            ] ;
                                                                  rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                            rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
-                                                                                        <http://www.w3.org/2003/11/swrl#classPredicate> :CPU ;
-                                                                                        <http://www.w3.org/2003/11/swrl#argument1> :c
+                                                                            rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
+                                                                                        <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
+                                                                                        <http://www.w3.org/2003/11/swrl#argument1> :d ;
+                                                                                        <http://www.w3.org/2003/11/swrl#argument2> :r
                                                                                       ] ;
                                                                             rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                                       rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
-                                                                                                   <http://www.w3.org/2003/11/swrl#classPredicate> :GPU ;
-                                                                                                   <http://www.w3.org/2003/11/swrl#argument1> :g
+                                                                                       rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
+                                                                                                   <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
+                                                                                                   <http://www.w3.org/2003/11/swrl#argument1> :d ;
+                                                                                                   <http://www.w3.org/2003/11/swrl#argument2> :odr
                                                                                                  ] ;
                                                                                        rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                                                  rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#argument2> :g
+                                                                                                  rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
+                                                                                                              <http://www.w3.org/2003/11/swrl#classPredicate> :Device ;
+                                                                                                              <http://www.w3.org/2003/11/swrl#argument1> :d
                                                                                                             ] ;
                                                                                                   rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                                                             rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#argument2> :r
+                                                                                                             rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#ClassAtom> ;
+                                                                                                                         <http://www.w3.org/2003/11/swrl#classPredicate> :ObjectDetectionRecognition ;
+                                                                                                                         <http://www.w3.org/2003/11/swrl#argument1> :odr
                                                                                                                        ] ;
                                                                                                              rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                                                                         rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
@@ -549,7 +955,7 @@
                                                                                                                                    rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
                                                                                                                                                <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasFunctionalProperty ;
                                                                                                                                                <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                                                               <http://www.w3.org/2003/11/swrl#argument2> :odr
+                                                                                                                                               <http://www.w3.org/2003/11/swrl#argument2> :g
                                                                                                                                              ] ;
                                                                                                                                    rdf:rest rdf:nil
                                                                                                                                  ]
@@ -576,61 +982,61 @@
    rdfs:label "CaptureVideoNF"^^xsd:string ;
    rdf:type <http://www.w3.org/2003/11/swrl#Imp> ;
    <http://www.w3.org/2003/11/swrl#body> [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                           rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
-                                                       <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#equal> ;
-                                                       <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
-                                                                                                    rdf:first :var ;
-                                                                                                    rdf:rest [ rdf:type rdf:List ;
-                                                                                                               rdf:first 1 ;
-                                                                                                               rdf:rest rdf:nil
-                                                                                                             ]
-                                                                                                  ]
+                                           rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
+                                                       <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVolume ;
+                                                       <http://www.w3.org/2003/11/swrl#argument1> :d ;
+                                                       <http://www.w3.org/2003/11/swrl#argument2> :vol
                                                      ] ;
                                            rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                      rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
-                                                                  <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVolume ;
-                                                                  <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                  <http://www.w3.org/2003/11/swrl#argument2> :vol
+                                                      rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
+                                                                  <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#equal> ;
+                                                                  <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
+                                                                                                               rdf:first :var ;
+                                                                                                               rdf:rest [ rdf:type rdf:List ;
+                                                                                                                          rdf:first 1 ;
+                                                                                                                          rdf:rest rdf:nil
+                                                                                                                        ]
+                                                                                                             ]
                                                                 ] ;
                                                       rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                 rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
-                                                                             <http://www.w3.org/2003/11/swrl#propertyPredicate> :isFunctionallySuitableFor ;
+                                                                 rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
+                                                                             <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVariety ;
                                                                              <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                             <http://www.w3.org/2003/11/swrl#argument2> :CaptureVideo
+                                                                             <http://www.w3.org/2003/11/swrl#argument2> :var
                                                                            ] ;
                                                                  rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                            rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
-                                                                                        <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#greaterThanOrEqual> ;
-                                                                                        <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
-                                                                                                                                     rdf:first :vel ;
-                                                                                                                                     rdf:rest [ rdf:type rdf:List ;
-                                                                                                                                                rdf:first 100 ;
-                                                                                                                                                rdf:rest rdf:nil
-                                                                                                                                              ]
-                                                                                                                                   ]
+                                                                            rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
+                                                                                        <http://www.w3.org/2003/11/swrl#propertyPredicate> :isFunctionallySuitableFor ;
+                                                                                        <http://www.w3.org/2003/11/swrl#argument1> :d ;
+                                                                                        <http://www.w3.org/2003/11/swrl#argument2> :CaptureVideo
                                                                                       ] ;
                                                                             rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                                        rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
                                                                                                    <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#greaterThanOrEqual> ;
                                                                                                    <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
-                                                                                                                                                rdf:first :vol ;
+                                                                                                                                                rdf:first :vel ;
                                                                                                                                                 rdf:rest [ rdf:type rdf:List ;
-                                                                                                                                                           rdf:first 1000 ;
+                                                                                                                                                           rdf:first 100 ;
                                                                                                                                                            rdf:rest rdf:nil
                                                                                                                                                          ]
                                                                                                                                               ]
                                                                                                  ] ;
                                                                                        rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                                                  rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVelocity ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#argument2> :vel
+                                                                                                  rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
+                                                                                                              <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#greaterThanOrEqual> ;
+                                                                                                              <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
+                                                                                                                                                           rdf:first :vol ;
+                                                                                                                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                                      rdf:first 1000 ;
+                                                                                                                                                                      rdf:rest rdf:nil
+                                                                                                                                                                    ]
+                                                                                                                                                         ]
                                                                                                             ] ;
                                                                                                   rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                                                              rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVariety ;
+                                                                                                                         <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVelocity ;
                                                                                                                          <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#argument2> :var
+                                                                                                                         <http://www.w3.org/2003/11/swrl#argument2> :vel
                                                                                                                        ] ;
                                                                                                              rdf:rest rdf:nil
                                                                                                            ]
@@ -655,61 +1061,61 @@
    rdfs:label "DetectObjectNF"^^xsd:string ;
    rdf:type <http://www.w3.org/2003/11/swrl#Imp> ;
    <http://www.w3.org/2003/11/swrl#body> [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                           rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
-                                                       <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#equal> ;
-                                                       <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
-                                                                                                    rdf:first :var ;
-                                                                                                    rdf:rest [ rdf:type rdf:List ;
-                                                                                                               rdf:first 1 ;
-                                                                                                               rdf:rest rdf:nil
-                                                                                                             ]
-                                                                                                  ]
+                                           rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
+                                                       <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVolume ;
+                                                       <http://www.w3.org/2003/11/swrl#argument1> :d ;
+                                                       <http://www.w3.org/2003/11/swrl#argument2> :vol
                                                      ] ;
                                            rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                      rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
-                                                                  <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVolume ;
-                                                                  <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                  <http://www.w3.org/2003/11/swrl#argument2> :vol
+                                                      rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
+                                                                  <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#equal> ;
+                                                                  <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
+                                                                                                               rdf:first :var ;
+                                                                                                               rdf:rest [ rdf:type rdf:List ;
+                                                                                                                          rdf:first 1 ;
+                                                                                                                          rdf:rest rdf:nil
+                                                                                                                        ]
+                                                                                                             ]
                                                                 ] ;
                                                       rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                 rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
-                                                                             <http://www.w3.org/2003/11/swrl#propertyPredicate> :isFunctionallySuitableFor ;
+                                                                 rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
+                                                                             <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVariety ;
                                                                              <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                             <http://www.w3.org/2003/11/swrl#argument2> :DetectObject
+                                                                             <http://www.w3.org/2003/11/swrl#argument2> :var
                                                                            ] ;
                                                                  rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                            rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
-                                                                                        <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#greaterThanOrEqual> ;
-                                                                                        <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
-                                                                                                                                     rdf:first :vel ;
-                                                                                                                                     rdf:rest [ rdf:type rdf:List ;
-                                                                                                                                                rdf:first 100 ;
-                                                                                                                                                rdf:rest rdf:nil
-                                                                                                                                              ]
-                                                                                                                                   ]
+                                                                            rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#IndividualPropertyAtom> ;
+                                                                                        <http://www.w3.org/2003/11/swrl#propertyPredicate> :isFunctionallySuitableFor ;
+                                                                                        <http://www.w3.org/2003/11/swrl#argument1> :d ;
+                                                                                        <http://www.w3.org/2003/11/swrl#argument2> :DetectObject
                                                                                       ] ;
                                                                             rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                                        rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
                                                                                                    <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#greaterThanOrEqual> ;
                                                                                                    <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
-                                                                                                                                                rdf:first :vol ;
+                                                                                                                                                rdf:first :vel ;
                                                                                                                                                 rdf:rest [ rdf:type rdf:List ;
-                                                                                                                                                           rdf:first 1000 ;
+                                                                                                                                                           rdf:first 100 ;
                                                                                                                                                            rdf:rest rdf:nil
                                                                                                                                                          ]
                                                                                                                                               ]
                                                                                                  ] ;
                                                                                        rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
-                                                                                                  rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVelocity ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                              <http://www.w3.org/2003/11/swrl#argument2> :vel
+                                                                                                  rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#BuiltinAtom> ;
+                                                                                                              <http://www.w3.org/2003/11/swrl#builtin> <http://www.w3.org/2003/11/swrlb#greaterThanOrEqual> ;
+                                                                                                              <http://www.w3.org/2003/11/swrl#arguments> [ rdf:type rdf:List ;
+                                                                                                                                                           rdf:first :vol ;
+                                                                                                                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                                                                                                                      rdf:first 1000 ;
+                                                                                                                                                                      rdf:rest rdf:nil
+                                                                                                                                                                    ]
+                                                                                                                                                         ]
                                                                                                             ] ;
                                                                                                   rdf:rest [ rdf:type <http://www.w3.org/2003/11/swrl#AtomList> ;
                                                                                                              rdf:first [ rdf:type <http://www.w3.org/2003/11/swrl#DatavaluedPropertyAtom> ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVariety ;
+                                                                                                                         <http://www.w3.org/2003/11/swrl#propertyPredicate> :hasVelocity ;
                                                                                                                          <http://www.w3.org/2003/11/swrl#argument1> :d ;
-                                                                                                                         <http://www.w3.org/2003/11/swrl#argument2> :var
+                                                                                                                         <http://www.w3.org/2003/11/swrl#argument2> :vel
                                                                                                                        ] ;
                                                                                                              rdf:rest rdf:nil
                                                                                                            ]
