@@ -10,7 +10,9 @@ This is a project developed by the Social and Urban Computing (SUC) research gro
 
 * Follow the [instructions](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#basic-cluster-setup) to configure the distributed Zookepeer on each device and configure a common cluster.
 
-* To start NiFi on each instance follow the [instructions](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#how-to-install-and-start-nifi)  
+* Copy and place the `ekstream-1.X.X.nar` file into the `lib` folder on each NiFi instance.
+
+* To start NiFi on each instance follow the [instructions](https://nifi.apache.org/docs/nifi-docs/html/administration-guide.html#how-to-install-and-start-nifi).
 
 # Contact details
 
