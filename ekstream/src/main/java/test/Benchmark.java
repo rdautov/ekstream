@@ -9,27 +9,23 @@ import java.io.IOException;
 
 public class Benchmark {
 
-    private static final String FILENAME = "/opt/nifi-1.0.1/RecogniseFaces-0523ecd1-015a-1000-3a3d-19023f1ac395-ready";
+	private static final String FILENAME = "/opt/nifi-1.0.1/RecogniseFaces-0523ecd1-015a-1000-3a3d-19023f1ac395-ready";
 
+	public static void main(String[] args) throws IOException {
 
-    public static void main(String[] args) throws IOException {
+		BufferedReader br1 = new BufferedReader(new FileReader(FILENAME));
 
-        BufferedReader br1 = new BufferedReader(new FileReader(FILENAME));
+		String sCurrentLine;
 
-        String sCurrentLine;
+		while ((sCurrentLine = br1.readLine()) != null) {
 
-        while ((sCurrentLine = br1.readLine()) != null) {
+			String[] output = sCurrentLine.split(";");
 
-            String[] output = sCurrentLine.split(";");
+			Double delay = Double.parseDouble(output[3]) - Double.parseDouble(output[1]);
+			System.out.println(delay * 10);
 
-            Double delay = Double.parseDouble(output[3]) - Double.parseDouble(output[1]);
-            System.out.println(delay*10);
+		}
 
-        }
-
-    }
-
-
-
+	}
 
 }

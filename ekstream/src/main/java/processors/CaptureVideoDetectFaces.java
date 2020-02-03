@@ -42,198 +42,182 @@ import org.bytedeco.javacv.FrameGrabber.Exception;
 import utils.Utils;
 
 /**
- * A NiFi processor which accesses the default video camera, captures the video stream,
- * samples it into separate frames, and transfers forward for face recognition.
+ * A NiFi processor which accesses the default video camera, captures the video
+ * stream, samples it into separate frames, and transfers forward for face
+ * recognition.
  */
 @TriggerWhenEmpty
 @InputRequirement(Requirement.INPUT_FORBIDDEN)
-@Tags({"ekstream", "video", "stream", "capturing", "sampling"})
+@Tags({ "ekstream", "video", "stream", "capturing", "sampling" })
 @CapabilityDescription("Testing JavaCV api")
 public class CaptureVideoDetectFaces extends EkstreamProcessor {
 
-    /** Scale factor for face detection. */
-    static final double SCALE_FACTOR = 1.5;
+	/** Scale factor for face detection. */
+	static final double SCALE_FACTOR = 1.5;
 
-    /** Neighbors for face detection. */
-    static final int MIN_NEIGHBOURS = 3;
+	/** Neighbors for face detection. */
+	static final int MIN_NEIGHBOURS = 3;
 
-    /** 1000. */
-    static final int INTERVAL = 1000;
+	/** 1000. */
+	static final int INTERVAL = 1000;
 
-    /** Processor property. */
-    public static final PropertyDescriptor CASCADE_FILE = new PropertyDescriptor.Builder()
-            .name("Cascade file.")
-            .description("Specifies the cascade file to be used for face recognition.")
-            .defaultValue("/home/orkes/Desktop/haarcascade_frontalface_default.xml")
-            .required(true)
-            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
-            .build();
+	/** Processor property. */
+	public static final PropertyDescriptor CASCADE_FILE = new PropertyDescriptor.Builder().name("Cascade file.")
+			.description("Specifies the cascade file to be used for face recognition.")
+			.defaultValue("/home/orkes/Desktop/haarcascade_frontalface_default.xml").required(true)
+			.addValidator(StandardValidators.NON_EMPTY_VALIDATOR).build();
 
-    /** Processor property. */
-    public static final PropertyDescriptor IMAGE_WIDTH = new PropertyDescriptor.Builder()
-            .name("Image width")
-            .description("Specifies the width of images with detected faces")
-            .defaultValue("92")
-            .required(true)
-            .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
+	/** Processor property. */
+	public static final PropertyDescriptor IMAGE_WIDTH = new PropertyDescriptor.Builder().name("Image width")
+			.description("Specifies the width of images with detected faces").defaultValue("92").required(true)
+			.addValidator(StandardValidators.INTEGER_VALIDATOR).build();
 
-    /** Processor property. */
-    public static final PropertyDescriptor IMAGE_HEIGHT = new PropertyDescriptor.Builder()
-            .name("Image height")
-            .description("Specifies the height of images with detected faces")
-            .defaultValue("112")
-            .required(true)
-            .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
+	/** Processor property. */
+	public static final PropertyDescriptor IMAGE_HEIGHT = new PropertyDescriptor.Builder().name("Image height")
+			.description("Specifies the height of images with detected faces").defaultValue("112").required(true)
+			.addValidator(StandardValidators.INTEGER_VALIDATOR).build();
 
-    /** Processor property. */
-    public static final PropertyDescriptor FRAME_INTERVAL = new PropertyDescriptor.Builder()
-            .name("Time interval between frames")
-            .description("Specified the time interval between two captured video frames, in ms")
-            .defaultValue("1000")
-            .required(true)
-            .addValidator(StandardValidators.INTEGER_VALIDATOR)
-            .build();
+	/** Processor property. */
+	public static final PropertyDescriptor FRAME_INTERVAL = new PropertyDescriptor.Builder()
+			.name("Time interval between frames")
+			.description("Specified the time interval between two captured video frames, in ms").defaultValue("1000")
+			.required(true).addValidator(StandardValidators.INTEGER_VALIDATOR).build();
 
-    /** Cascade file. */
-    private static CvHaarClassifierCascade cascade;
+	/** Cascade file. */
+	private static CvHaarClassifierCascade cascade;
 
-    /** JavaCV frame grabber. */
-    private static FrameGrabber grabber;
+	/** JavaCV frame grabber. */
+	private static FrameGrabber grabber;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void init(final ProcessorInitializationContext aContext) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void init(final ProcessorInitializationContext aContext) {
 
-        super.init(aContext);
+		super.init(aContext);
 
-        final Set<Relationship> procRels = new HashSet<>();
-        procRels.add(REL_SUCCESS);
-        setRelationships(Collections.unmodifiableSet(procRels));
+		final Set<Relationship> procRels = new HashSet<>();
+		procRels.add(REL_SUCCESS);
+		setRelationships(Collections.unmodifiableSet(procRels));
 
-        final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
-        supDescriptors.add(FRAME_INTERVAL);
-        supDescriptors.add(IMAGE_WIDTH);
-        supDescriptors.add(IMAGE_HEIGHT);
-        supDescriptors.add(SAVE_IMAGES);
-        supDescriptors.add(BENCHMARKING_DIR);
-        supDescriptors.add(CASCADE_FILE);
-        setProperties(Collections.unmodifiableList(supDescriptors));
+		final List<PropertyDescriptor> supDescriptors = new ArrayList<>();
+		supDescriptors.add(FRAME_INTERVAL);
+		supDescriptors.add(IMAGE_WIDTH);
+		supDescriptors.add(IMAGE_HEIGHT);
+		supDescriptors.add(SAVE_IMAGES);
+		supDescriptors.add(BENCHMARKING_DIR);
+		supDescriptors.add(CASCADE_FILE);
+		setProperties(Collections.unmodifiableList(supDescriptors));
 
-        try {
-            grabber = FrameGrabber.createDefault(0);
-        } catch (Exception e) {
-            getLogger().error("Something went wrong with the video grabber initialisation!", e);
-        }
+		try {
+			grabber = FrameGrabber.createDefault(0);
+		} catch (Exception e) {
+			getLogger().error("Something went wrong with the video grabber initialisation!", e);
+		}
 
-        getLogger().info("Initialision complete!");
-    }
+		getLogger().info("Initialision complete!");
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onTrigger(final ProcessContext aContext, final ProcessSession aSession)
-            throws ProcessException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void onTrigger(final ProcessContext aContext, final ProcessSession aSession) throws ProcessException {
 
-        super.onTrigger(aContext, aSession);
+		super.onTrigger(aContext, aSession);
 
-        if (null == cascade) {
-            cascade =
-                    new CvHaarClassifierCascade(
-                            cvLoad(aContext.getProperty(CASCADE_FILE).getValue()));
-            getLogger().info("Loaded the cascade file: " + cascade.toString());
-        }
+		if (null == cascade) {
+			cascade = new CvHaarClassifierCascade(cvLoad(aContext.getProperty(CASCADE_FILE).getValue()));
+			getLogger().info("Loaded the cascade file: " + cascade.toString());
+		}
 
-        try {
+		try {
 
-            grabber.start();
+			grabber.start();
 
-            Frame frame = grabber.grab();
-            IplImage image = Utils.getInstance().convertToImage(frame);
+			Frame frame = grabber.grab();
+			IplImage image = Utils.getInstance().convertToImage(frame);
 
-            saveInterimResults(System.currentTimeMillis() + "-received.png", image);
+			saveInterimResults(System.currentTimeMillis() + "-received.png", image);
 
-            ArrayList<IplImage> faces = detect(image);
+			ArrayList<IplImage> faces = detect(image);
 
-            if (!faces.isEmpty()) {
+			if (!faces.isEmpty()) {
 
-                ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces,
-                        Integer.parseInt(aContext.getProperty(IMAGE_WIDTH).getValue()),
-                        Integer.parseInt(aContext.getProperty(IMAGE_HEIGHT).getValue()));
+				ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces,
+						Integer.parseInt(aContext.getProperty(IMAGE_WIDTH).getValue()),
+						Integer.parseInt(aContext.getProperty(IMAGE_HEIGHT).getValue()));
 
-                //now transfer the cropped images forward
-                for (IplImage face : resizedFaces) {
+				// now transfer the cropped images forward
+				for (IplImage face : resizedFaces) {
 
-                    saveInterimResults(System.currentTimeMillis() + "-resized.png", face);
+					saveInterimResults(System.currentTimeMillis() + "-resized.png", face);
 
-                    byte[] bytes = Utils.getInstance().convertToByteArray(face);
+					byte[] bytes = Utils.getInstance().convertToByteArray(face);
 
-                    //transfer the image
-                    FlowFile flowFile = aSession.create();
-                    flowFile = aSession.write(flowFile, new OutputStreamCallback() {
+					// transfer the image
+					FlowFile flowFile = aSession.create();
+					flowFile = aSession.write(flowFile, new OutputStreamCallback() {
 
-                        @Override
-                        public void process(final OutputStream aStream) throws IOException {
+						@Override
+						public void process(final OutputStream aStream) throws IOException {
 
-                            aStream.write(bytes);
-                        }
-                    });
-                    aSession.transfer(flowFile, REL_SUCCESS);
+							aStream.write(bytes);
+						}
+					});
+					aSession.transfer(flowFile, REL_SUCCESS);
 
-                    //benchmarking=====================================
-                    benchmark(flowFile.getAttribute(CoreAttributes.UUID.key()));
-                    //=================================================
+					// benchmarking=====================================
+					benchmark(flowFile.getAttribute(CoreAttributes.UUID.key()));
+					// =================================================
 
-                }
-            }
+				}
+			}
 
-            grabber.stop();
+			grabber.stop();
 
-            Thread.currentThread();
-            Thread.sleep(Long.parseLong(aContext.getProperty(FRAME_INTERVAL).getValue()));
+			Thread.currentThread();
+			Thread.sleep(Long.parseLong(aContext.getProperty(FRAME_INTERVAL).getValue()));
 
-        } catch (Exception e) {
-            getLogger().error("Something went wrong with the video capture!", e);
-        } catch (InterruptedException e) {
-            getLogger().error("Something went wrong with the threads!", e);
-        } catch (IOException e) {
-            getLogger().error("Something went wrong with saving the file!", e);
-        } finally {
-            try {
-                grabber.stop();
-            } catch (Exception e1) {
-                getLogger().error("NESTED: Something went wrong with the video capture!", e1);
-            }
-        }
+		} catch (Exception e) {
+			getLogger().error("Something went wrong with the video capture!", e);
+		} catch (InterruptedException e) {
+			getLogger().error("Something went wrong with the threads!", e);
+		} catch (IOException e) {
+			getLogger().error("Something went wrong with saving the file!", e);
+		} finally {
+			try {
+				grabber.stop();
+			} catch (Exception e1) {
+				getLogger().error("NESTED: Something went wrong with the video capture!", e1);
+			}
+		}
 
-    }
+	}
 
-    /**
-     * Detects faces in an input image.
-     *
-     * @param aImage input image
-     * @return an array of detected faces as images
-     */
-    public ArrayList<IplImage> detect(final IplImage aImage) {
+	/**
+	 * Detects faces in an input image.
+	 *
+	 * @param aImage input image
+	 * @return an array of detected faces as images
+	 */
+	public ArrayList<IplImage> detect(final IplImage aImage) {
 
-        ArrayList<IplImage> result = new ArrayList<IplImage>();
+		ArrayList<IplImage> result = new ArrayList<IplImage>();
 
-        CvMemStorage storage = AbstractCvMemStorage.create();
-        CvSeq sign = cvHaarDetectObjects(aImage,
-                cascade, storage, SCALE_FACTOR, MIN_NEIGHBOURS, CV_HAAR_DO_CANNY_PRUNING);
+		CvMemStorage storage = AbstractCvMemStorage.create();
+		CvSeq sign = cvHaarDetectObjects(aImage, cascade, storage, SCALE_FACTOR, MIN_NEIGHBOURS,
+				CV_HAAR_DO_CANNY_PRUNING);
 
-        for (int i = 0; i < sign.total(); i++) {
-            CvRect r = new CvRect(cvGetSeqElem(sign, i));
-            IplImage image = Utils.getInstance().cropImage(aImage, r);
-            result.add(image);
-        }
+		for (int i = 0; i < sign.total(); i++) {
+			CvRect r = new CvRect(cvGetSeqElem(sign, i));
+			IplImage image = Utils.getInstance().cropImage(aImage, r);
+			result.add(image);
+		}
 
-        cvClearMemStorage(storage);
-        return result;
-    }
+		cvClearMemStorage(storage);
+		return result;
+	}
 
 }

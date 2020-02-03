@@ -45,171 +45,167 @@ import org.bytedeco.javacv.FrameGrabber.Exception;
  */
 public class VideoGrabberSamplerDetector {
 
-    /** Scale factor for face detection. */
-    static final double SCALE_FACTOR = 1.5;
+	/** Scale factor for face detection. */
+	static final double SCALE_FACTOR = 1.5;
 
-    /** Neighbors for face detection. */
-    static final int MIN_NEIGHBOURS = 3;
+	/** Neighbors for face detection. */
+	static final int MIN_NEIGHBOURS = 3;
 
-    /** */
-    static final int INTERVAL = 1000;
+	/** */
+	static final int INTERVAL = 1000;
 
-    /** */
-    static final int IMAGE_DIMENSION = 300;
+	/** */
+	static final int IMAGE_DIMENSION = 300;
 
-    /** */
-    public static final String XML_FILE = "/home/orkes/Desktop/haarcascade_frontalface_default.xml";
+	/** */
+	public static final String XML_FILE = "haarcascade_frontalface_default.xml";
 
-    private static OpenCVFrameConverter.ToIplImage converter;
+	private static OpenCVFrameConverter.ToIplImage converter;
 
-    private static Java2DFrameConverter flatConverter;
+	private static Java2DFrameConverter flatConverter;
 
-    /** Face recognizer. */
-    private static FaceRecognizer faceRecognizer;
+	/** Face recognizer. */
+	private static FaceRecognizer faceRecognizer;
 
-    /**
-     * @param aArgs
-     * @throws Exception
-     * @throws InterruptedException
-     * @throws IOException
-     */
-    public static void main(final String[] aArgs) throws Exception, InterruptedException, IOException {
+	/**
+	 * @param aArgs
+	 * @throws Exception
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
+	public static void main(final String[] aArgs) throws Exception, InterruptedException, IOException {
 
+		Loader.load(opencv_objdetect.class);
 
+		FrameGrabber grabber = FrameGrabber.createDefault(0);
+		converter = new OpenCVFrameConverter.ToIplImage();
+		flatConverter = new Java2DFrameConverter();
 
-        Loader.load(opencv_objdetect.class);
+		train("/home/orkes/Desktop/s1", "LBPH");
 
-        FrameGrabber grabber = FrameGrabber.createDefault(0);
-        converter = new OpenCVFrameConverter.ToIplImage();
-        flatConverter = new Java2DFrameConverter();
+		grabber.start();
 
-        train("/home/orkes/Desktop/s1", "LBPH");
+		while (true) {
 
-        grabber.start();
+			Frame frame = grabber.grab();
+			IplImage image = Utils.getInstance().convertToImage(frame);
 
-        while (true) {
+			opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received.png", image);
 
-            Frame frame = grabber.grab();
-            IplImage image = Utils.getInstance().convertToImage(frame);
+			ArrayList<IplImage> faces = detect(image);
 
-            opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-received.png", image);
+			if (!faces.isEmpty()) {
 
-            ArrayList<IplImage> faces = detect(image);
+				// now transfer the cropped images forward
+				for (IplImage face : faces) {
 
-            if (!faces.isEmpty()) {
+					opencv_imgcodecs.cvSaveImage(System.currentTimeMillis() + "-detected.png", face);
+				}
 
-                //now transfer the cropped images forward
-                for (IplImage face : faces) {
+				ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces, 92, 112);
 
-                    opencv_imgcodecs.cvSaveImage(System.currentTimeMillis()
-                            + "-detected.png", face);
-                }
+				// now transfer the cropped images forward
+				for (IplImage face : resizedFaces) {
 
-                ArrayList<IplImage> resizedFaces = Utils.getInstance().resizeImages(faces, 92, 112);
+					Mat mat = Utils.getInstance().convertToMat(face);
+					mat = Utils.getInstance().convertToGrayscale(mat);
 
-                //now transfer the cropped images forward
-                for (IplImage face : resizedFaces) {
+					int[] plabel = new int[1];
+					double[] pconfidence = new double[1];
 
-                    Mat mat = Utils.getInstance().convertToMat(face);
-                    mat = Utils.getInstance().convertToGrayscale(mat);
+					faceRecognizer.predict(mat, plabel, pconfidence);
 
-                    int[] plabel = new int[1];
-                    double[] pconfidence = new double[1];
+					// System.out.println("Predicted label: " + predictedLabel);
+					System.out.println("Predicted label: " + plabel[0] + " & Confidence: " + pconfidence[0]);
 
-                    faceRecognizer.predict(mat, plabel, pconfidence);
+				}
+			}
 
-                    //System.out.println("Predicted label: " + predictedLabel);
-                    System.out.println("Predicted label: " + plabel[0] + " & Confidence: " + pconfidence[0]);
+			Thread.currentThread();
+			Thread.sleep(INTERVAL);
 
-                }
-            }
+			// grabber.stop();
 
-            Thread.currentThread();
-            Thread.sleep(INTERVAL);
+		}
 
-            //grabber.stop();
+	}
 
-        }
+	/**
+	 * Detects faces in an input image.
+	 *
+	 * @param aImage input image
+	 * @return an array of detected faces as images
+	 */
+	public static ArrayList<IplImage> detect(final IplImage aImage) {
 
-    }
+		ArrayList<IplImage> result = new ArrayList<IplImage>();
 
-    /**
-     * Detects faces in an input image.
-     *
-     * @param aImage input image
-     * @return an array of detected faces as images
-     */
-    public static ArrayList<IplImage> detect(final IplImage aImage) {
+		CvHaarClassifierCascade cascade = new CvHaarClassifierCascade(cvLoad(XML_FILE));
+		CvMemStorage storage = AbstractCvMemStorage.create();
+		CvSeq sign = cvHaarDetectObjects(aImage, cascade, storage, SCALE_FACTOR, MIN_NEIGHBOURS,
+				CV_HAAR_DO_CANNY_PRUNING);
 
-        ArrayList<IplImage> result = new ArrayList<IplImage>();
+		for (int i = 0; i < sign.total(); i++) {
+			CvRect r = new CvRect(cvGetSeqElem(sign, i));
+			// opencv_imgproc.cvRectangle(aImage, cvPoint(r.x(), r.y()),
+			// cvPoint(r.width() + r.x(), r.height() + r.y()),
+			// AbstractCvScalar.RED, 2, LINE_AA, 0);
 
-        CvHaarClassifierCascade cascade =
-                new CvHaarClassifierCascade(cvLoad(XML_FILE));
-        CvMemStorage storage = AbstractCvMemStorage.create();
-        CvSeq sign = cvHaarDetectObjects(aImage,
-                cascade, storage, SCALE_FACTOR, MIN_NEIGHBOURS, CV_HAAR_DO_CANNY_PRUNING);
+			IplImage image = Utils.getInstance().cropImage(aImage, r);
+			result.add(image);
+		}
 
-        for (int i = 0; i < sign.total(); i++) {
-            CvRect r = new CvRect(cvGetSeqElem(sign, i));
-            //opencv_imgproc.cvRectangle(aImage, cvPoint(r.x(), r.y()),
-            //        cvPoint(r.width() + r.x(), r.height() + r.y()),
-            //        AbstractCvScalar.RED, 2, LINE_AA, 0);
+		cvClearMemStorage(storage);
+		return result;
+	}
 
-            IplImage image = Utils.getInstance().cropImage(aImage, r);
-            result.add(image);
-        }
+	/**
+	 * Trains the face recognizer.
+	 *
+	 * @param aTrainingDir directory with training images
+	 * @param aAlgorithm   face recognition algorithm
+	 */
+	public static void train(final String aTrainingDir, final String aAlgorithm) {
 
-        cvClearMemStorage(storage);
-        return result;
-    }
+		File root = new File(aTrainingDir);
 
-    /**
-     * Trains the face recognizer.
-     *
-     * @param aTrainingDir directory with training images
-     * @param aAlgorithm face recognition algorithm
-     */
-    public static void train(final String aTrainingDir, final String aAlgorithm) {
+		FilenameFilter imgFilter = new FilenameFilter() {
+			@Override
+			public boolean accept(final File aDir, final String aName) {
+				String name = aName.toLowerCase();
+				return name.endsWith(".jpg") || name.endsWith(".pgm") || name.endsWith(".png");
+			}
+		};
 
-        File root = new File(aTrainingDir);
+		File[] imageFiles = root.listFiles(imgFilter);
 
-        FilenameFilter imgFilter = new FilenameFilter() {
-            @Override
-            public boolean accept(final File aDir, final String aName) {
-                String name = aName.toLowerCase();
-                return name.endsWith(".jpg") || name.endsWith(".pgm") || name.endsWith(".png");
-            }
-        };
+		MatVector images = new MatVector(imageFiles.length);
 
-        File[] imageFiles = root.listFiles(imgFilter);
+		Mat labels = new Mat(imageFiles.length, 1, CV_32SC1);
+		IntBuffer labelsBuf = labels.createBuffer();
 
-        MatVector images = new MatVector(imageFiles.length);
+		for (int i = 0; i < imageFiles.length; i++) {
 
-        Mat labels = new Mat(imageFiles.length, 1, CV_32SC1);
-        IntBuffer labelsBuf = labels.createBuffer();
+			Mat img = opencv_imgcodecs.imread(imageFiles[i].getAbsolutePath(),
+					opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 
-        for (int i = 0; i < imageFiles.length; i++) {
+			int label = Integer.parseInt(imageFiles[i].getName().split("\\-")[0]);
+			images.put(i, img);
+			labelsBuf.put(i, label);
+		}
 
-            Mat img = opencv_imgcodecs.imread(imageFiles[i].getAbsolutePath(),
-                    opencv_imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+		switch (aAlgorithm) {
+		case "Fisher":
+			faceRecognizer = opencv_face.createFisherFaceRecognizer();
+		case "Eigen":
+			faceRecognizer = opencv_face.createEigenFaceRecognizer();
+		case "LBPH":
+			faceRecognizer = opencv_face.createLBPHFaceRecognizer();
+		default:
+			faceRecognizer = opencv_face.createFisherFaceRecognizer();
+		}
 
-            int label = Integer.parseInt(imageFiles[i].getName().split("\\-")[0]);
-            images.put(i, img);
-            labelsBuf.put(i, label);
-        }
-
-        switch (aAlgorithm) {
-        case "Fisher":
-            faceRecognizer = opencv_face.createFisherFaceRecognizer();
-        case "Eigen":
-            faceRecognizer = opencv_face.createEigenFaceRecognizer();
-        case "LBPH":
-            faceRecognizer = opencv_face.createLBPHFaceRecognizer();
-        default:
-            faceRecognizer = opencv_face.createFisherFaceRecognizer();
-        }
-
-        faceRecognizer.train(images, labels);
-    }
+		faceRecognizer.train(images, labels);
+	}
 
 }
